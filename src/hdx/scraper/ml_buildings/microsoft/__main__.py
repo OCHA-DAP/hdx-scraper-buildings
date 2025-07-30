@@ -1,10 +1,11 @@
 from multiprocessing import Pool
-from shutil import make_archive, rmtree
+from time import time
 
 from duckdb import connect
 from pandas import read_csv
 
 from .config import (
+    COUNTRY_LOOKUP,
     DATASET_LINKS_URL,
     GLOBAL_ADMIN0,
     PARALLEL_DOWNLOADS,
@@ -13,41 +14,42 @@ from .config import (
 from .utils import download_file
 
 
-def merge_adm0() -> None:
+def merge_adm0(iso3: str) -> None:
     input_dir = data_dir / "microsoft" / "inputs" / "**/*.parquet"
-    output_dir = data_dir / "microsoft" / "outputs"
-    rmtree(output_dir, ignore_errors=True)
-    output_dir.mkdir(exist_ok=True, parents=True)
+    output_file = (
+        data_dir / "microsoft" / "outputs" / f"{iso3.lower()}_buildings.parquet"
+    )
+    output_file.parent.mkdir(exist_ok=True, parents=True)
+    output_file.unlink(missing_ok=True)
+    start = time()
     with connect() as con:
-        con.sql("INSTALL spatial;")
-        con.sql("LOAD spatial;")
         con.sql(f"""
-            COPY (
-                SELECT
-                    a.confidence,
-                    a.height,
-                    a.geometry,
-                    b.iso_3
-                FROM '{input_dir}' AS a
-                JOIN (
-                    SELECT iso_3, geometry
-                    FROM '{GLOBAL_ADMIN0}'
-                    WHERE iso_3 = 'AND'
-                ) as b
-                ON ST_Intersects(a.geometry, b.geometry)
-            ) TO '{output_dir}' (
-                FORMAT 'gdal',
-                DRIVER 'OpenFileGDB',
-                SRS 'EPSG:4326',
-                GEOMETRY_TYPE 'MULTIPOLYGON',
-                PARTITION_BY(iso_3)
+            INSTALL spatial;
+            LOAD spatial;
+            CREATE TABLE bounds AS (
+                SELECT geometry, bbox
+                FROM '{GLOBAL_ADMIN0}'
+                WHERE iso_3 = '{iso3}'
             );
+            SET variable xmin = (SELECT bbox.xmin FROM bounds);
+            SET variable ymin = (SELECT bbox.ymin FROM bounds);
+            SET variable xmax = (SELECT bbox.xmax FROM bounds);
+            SET variable ymax = (SELECT bbox.ymax FROM bounds);
+            SET variable boundary = (SELECT geometry FROM bounds);
+            COPY (
+                SELECT *
+                FROM '{input_dir}'
+                WHERE
+                    bbox.xmin > getvariable('xmin') AND
+                    bbox.xmax < getvariable('xmax') AND
+                    bbox.ymin > getvariable('ymin') AND
+                    bbox.ymax < getvariable('ymax') AND
+                    ST_Intersects(getvariable('boundary'), geometry)
+            )
+            TO '{output_file}'
+            WITH (COMPRESSION zstd);
         """)
-    for partition in output_dir.iterdir():
-        partition_gdb = partition / "data_0.gdb"
-        partition_name = partition.name.split("=")[1].lower() + "_buildings.gdb"
-        make_archive(str(output_dir / partition_name), "zip", partition_gdb)
-        rmtree(partition, ignore_errors=True)
+        print(time() - start)
 
 
 def download_files(urls: list[str]) -> None:
@@ -63,10 +65,14 @@ def download_files(urls: list[str]) -> None:
 
 
 def main() -> None:
-    dataset_links = read_csv(DATASET_LINKS_URL, usecols=["Url"])
-    urls = dataset_links["Url"].to_list()
-    download_files(urls)
-    merge_adm0()
+    if False:
+        dataset_links = read_csv(DATASET_LINKS_URL, usecols=["Url"])
+        urls = dataset_links["Url"].to_list()
+        download_files(urls)
+    country_lookup = read_csv(COUNTRY_LOOKUP, usecols=["ISO3"]).drop_duplicates()
+    country_codes = country_lookup["ISO3"].to_list()
+    for iso3 in country_codes[0:1]:
+        merge_adm0(iso3)
 
 
 if __name__ == "__main__":
