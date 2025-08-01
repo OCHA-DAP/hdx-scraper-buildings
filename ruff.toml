@@ -1,15 +1,5 @@
 fix = true
-target-version = "py313"
-
-[format]
-docstring-code-format = true
 
 [lint]
 select = ["ALL"]
-ignore = ["D100", "D104", "INP", "S608"]
-
-[lint.isort]
-known-local-folder = ["hdx.scraper.ml_buildings"]
-
-[lint.pydocstyle]
-convention = "google"
+ignore = ["D100", "INP001", "S603", "S608", "TID252"]
