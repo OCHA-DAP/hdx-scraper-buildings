@@ -69,15 +69,20 @@ def group_by_adm0(provider: str, iso3: str) -> None:
         con.sql(f"""
             LOAD spatial;
             CREATE TABLE bounds AS (
-                SELECT geometry, geometry_bbox AS bbox
+                SELECT
+                    ST_MemUnion_Agg(geometry) AS geometry,
+                    min(geometry_bbox.xmin) AS xmin,
+                    min(geometry_bbox.ymin) AS ymin,
+                    max(geometry_bbox.xmax) AS xmax,
+                    max(geometry_bbox.ymax) AS ymax
                 FROM '{GLOBAL_ADM0}'
                 WHERE iso_3 = '{iso3}'
-                LIMIT 1
+                GROUP BY iso_3
             );
-            SET VARIABLE xmin = (SELECT bbox.xmin FROM bounds);
-            SET VARIABLE ymin = (SELECT bbox.ymin FROM bounds);
-            SET VARIABLE xmax = (SELECT bbox.xmax FROM bounds);
-            SET VARIABLE ymax = (SELECT bbox.ymax FROM bounds);
+            SET VARIABLE xmin = (SELECT xmin FROM bounds);
+            SET VARIABLE ymin = (SELECT ymin FROM bounds);
+            SET VARIABLE xmax = (SELECT xmax FROM bounds);
+            SET VARIABLE ymax = (SELECT ymax FROM bounds);
             SET VARIABLE geometry = (SELECT geometry FROM bounds);
             COPY (
                 SELECT * RENAME (geometry_bbox AS bbox)
