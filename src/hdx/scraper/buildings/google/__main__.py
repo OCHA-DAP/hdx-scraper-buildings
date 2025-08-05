@@ -1,60 +1,48 @@
-from multiprocessing import Pool
+import asyncio
 
 from geopandas import read_file
-from pandas import read_csv
-from tqdm import tqdm
+from httpx import AsyncClient
+from tqdm.asyncio import tqdm_asyncio
 
-from ..config import PARALLEL_DOWNLOADS, cwd, data_dir
-from ..download import download_csv
-from ..group import group_by_adm0
+from ..common.config import SKIP_DOWNLOAD, data_dir
+from ..common.download import csv_to_geoparquet, download_gz
+from ..common.group import group
 
+PROVIDER = "google"
 DATASET_LINKS = "https://researchsites.withgoogle.com/tiles.geojson"
 CSV_COLUMNS = "area_in_meters,confidence"
 
 
-def partition() -> None:
-    """Partition downloaded building footprints into ADM0 regions."""
-    country_list = cwd / "microsoft/countries.csv"
-    country_lookup = read_csv(country_list, usecols=["ISO3"]).drop_duplicates()
-    country_codes = country_lookup["ISO3"].to_list()
-    pbar = tqdm(country_codes)
-    for iso3 in pbar:
-        pbar.set_description(iso3)
-        group_by_adm0("google", iso3)
+async def fetch_url(client: AsyncClient, url: str) -> None:
+    """Download a large file from a URL in chunks using httpx."""
+    output_dir = data_dir / PROVIDER / "inputs"
+    file_name = url.split("/")[-1]
+    output_file = output_dir / file_name.replace(".csv.gz", ".csv")
+    output_parquet = output_dir / file_name.replace(".csv.gz", ".parquet")
+    await download_gz(client, url, output_file)
+    await csv_to_geoparquet(output_file, output_parquet, CSV_COLUMNS)
+    output_file.unlink()
 
 
-def download_files(urls: list[str]) -> None:
-    """Download files in parallel.
-
-    Iterate through the URL list and passses download links to GDAL for processing.
-    """
-    results = []
-    pool = Pool(PARALLEL_DOWNLOADS)
-    for url in urls:
-        input_url = f"CSV:/vsigzip//vsicurl/{url}"
-        output_dir = data_dir / "google" / "inputs"
-        file_name = url.split("/")[-1]
-        output_path = output_dir / file_name.replace(".csv.gz", ".parquet")
-        args = [input_url, output_path, CSV_COLUMNS]
-        result = pool.apply_async(download_csv, args=args)
-        results.append(result)
-    pool.close()
-    pool.join()
-    for result in results:
-        result.get()
+async def download_files(urls: list[str]) -> None:
+    """Download files asynchronusly."""
+    async with AsyncClient(http2=True) as client:
+        tasks = [fetch_url(client, url) for url in urls]
+        await tqdm_asyncio.gather(*tasks)
 
 
 def download() -> None:
     """Read the master list of building footprint URLs and download them."""
     dataset_links = read_file(DATASET_LINKS, use_arrow=True, columns=["tile_url"])
     urls = dataset_links["tile_url"].to_list()
-    download_files(urls)
+    asyncio.run(download_files(urls))
 
 
 def main() -> None:
     """Entrypoint to the function."""
-    download()
-    partition()
+    if not SKIP_DOWNLOAD:
+        download()
+    group(PROVIDER)
 
 
 if __name__ == "__main__":

@@ -1,12 +1,6 @@
 default_language_version:
   python: python3.13
 repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.7
-    hooks:
-      - id: ruff-format
-      - id: ruff-check
-      - id: ruff-format
   - repo: https://github.com/astral-sh/uv-pre-commit
     rev: 0.8.4
     hooks:
@@ -30,3 +24,9 @@ repos:
             "--no-emit-project",
             "--no-hashes",
           ]
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.7
+    hooks:
+      - id: ruff-format
+      - id: ruff-check
+      - id: ruff-format

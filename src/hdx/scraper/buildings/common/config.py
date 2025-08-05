@@ -1,0 +1,21 @@
+from os import getenv
+from pathlib import Path
+
+
+def is_bool_env(env: str) -> bool:
+    """Check if env is a boolean."""
+    return env.lower() in ("true", "yes", "on", "1")
+
+
+GLOBAL_ADM0 = "https://data.fieldmaps.io/adm0/osm/intl/adm0_polygons.parquet"
+GLOBAL_ADM1 = (
+    "https://data.fieldmaps.io/edge-matched/humanitarian/intl/adm1_polygons.parquet"
+)
+HDX_MAX_SIZE = 1.5 * 1024 * 1024 * 1024  # 1.5 GB
+SKIP_DOWNLOAD = is_bool_env(getenv("SKIP_DOWNLOAD", "NO"))
+
+cwd = Path(__file__).parent
+data_dir = cwd / "../../../../../saved_data"
+data_dir.mkdir(exist_ok=True, parents=True)
+
+iso3_filter = getenv("ISO3_FILTER", "").upper().split(",")
