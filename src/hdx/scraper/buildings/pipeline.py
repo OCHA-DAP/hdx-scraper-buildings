@@ -1,9 +1,7 @@
 #!/usr/bin/python
-"""Buildings scraper"""
+"""Buildings scraper."""
 
 import logging
-from typing import List, Optional
-
 
 from hdx.api.configuration import Configuration
 from hdx.data.dataset import Dataset
@@ -14,18 +12,21 @@ logger = logging.getLogger(__name__)
 
 
 class Pipeline:
+    """Pipeline."""
 
     def __init__(
-        self, configuration: Configuration, retriever: Retrieve, tempdir: str
-    ):
+        self,
+        configuration: Configuration,
+        retriever: Retrieve,
+        tempdir: str,
+    ) -> None:
+        """Initialize pipeline."""
         self._configuration = configuration
         self._retriever = retriever
         self._tempdir = tempdir
 
-
-    def generate_dataset(self) -> Optional[Dataset]:
-
-        # To be generated
+    def generate_dataset(self) -> Dataset | None:
+        """To be generated."""
         dataset_name = None
         dataset_title = None
         dataset_time_period = None
@@ -37,7 +38,7 @@ class Pipeline:
             {
                 "name": dataset_name,
                 "title": dataset_title,
-            }
+            },
         )
 
         dataset.set_time_period(dataset_time_period)
@@ -47,8 +48,8 @@ class Pipeline:
         try:
             dataset.add_country_location(dataset_country_iso3)
         except HDXError:
-            logger.error(f"Couldn't find country {dataset_country_iso3}, skipping")
-            return
+            logger.exception("Couldn't find country %s, skipping", dataset_country_iso3)
+            return None
 
         # Add resources here
 

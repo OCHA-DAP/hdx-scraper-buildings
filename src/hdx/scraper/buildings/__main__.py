@@ -1,12 +1,11 @@
 #!/usr/bin/python
-"""
-Top level script. Calls other functions that generate datasets that this
-script then creates in HDX.
+"""Top level script.
 
+Calls other functions that generate datasets that this script then creates in HDX.
 """
 
 import logging
-from os.path import dirname, expanduser, join
+from pathlib import Path
 
 from hdx.api.configuration import Configuration
 from hdx.data.user import User
@@ -28,10 +27,10 @@ _UPDATED_BY_SCRIPT = "HDX Scraper: Buildings"
 
 
 def main(
-    save: bool = False,
-    use_saved: bool = False,
+    save: bool = False,  # noqa: FBT001, FBT002
+    use_saved: bool = False,  # noqa: FBT001, FBT002
 ) -> None:
-    """Generate datasets and create them in HDX
+    """Generate datasets and create them in HDX.
 
     Args:
         save (bool): Save downloaded data. Defaults to False.
@@ -39,8 +38,9 @@ def main(
 
     Returns:
         None
+
     """
-    logger.info(f"##### {_LOOKUP} version {__version__} ####")
+    logger.info("##### %s version %s ####", _LOOKUP, __version__)
     configuration = Configuration.read()
     User.check_current_user_write_access("")
 
@@ -63,8 +63,9 @@ def main(
             if dataset:
                 dataset.update_from_yaml(
                     script_dir_plus_file(
-                        join("config", "hdx_dataset_static.yaml"), main
-                    )
+                        str(Path("config") / "hdx_dataset_static.yaml"),
+                        main,
+                    ),
                 )
                 dataset.create_in_hdx(
                     remove_additional_resources=True,
@@ -78,10 +79,10 @@ def main(
 if __name__ == "__main__":
     facade(
         main,
-#        hdx_site="dev",
-        user_agent_config_yaml=join(expanduser("~"), ".useragents.yaml"),
+        user_agent_config_yaml=Path("~").expanduser() / ".useragents.yaml",
         user_agent_lookup=_LOOKUP,
         project_config_yaml=script_dir_plus_file(
-            join("config", "project_configuration.yaml"), main
+            str(Path("config") / "project_configuration.yaml"),
+            main,
         ),
     )
