@@ -17,11 +17,12 @@ dependencies = [
     "geopandas",
     "hdx-python-api",
     "hdx-python-utilities",
-    "httpx[http2]",
+    "httpx",
     "pandas[performance]",
     "pyarrow",
     "python-dotenv",
     "quantulum3[classifier]",
+    "tenacity",
     "tqdm",
 ]
 

@@ -4,16 +4,20 @@ from asyncio import create_subprocess_shell
 from pathlib import Path
 
 from httpx import AsyncClient
+from tenacity import retry, stop_after_attempt
+
+from .config import ATTEMPT
 
 # Once GDAL 3.12 is available, the following options should be added.
 # --lco=COMPRESSION_LEVEL=15
 # --lco=USE_PARQUET_GEO_TYPES=YES
 
 
+@retry(stop=stop_after_attempt(ATTEMPT))
 async def download_gz(client: AsyncClient, url: str, output_path: Path) -> None:
     """Download a large file from a URL in chunks using httpx."""
-    output_path.parent.mkdir(exist_ok=True, parents=True)
     output_zip = output_path.with_suffix(output_path.suffix + ".gz")
+    output_path.parent.mkdir(exist_ok=True, parents=True)
     output_path.unlink(missing_ok=True)
     output_zip.unlink(missing_ok=True)
     with output_zip.open("wb") as f:

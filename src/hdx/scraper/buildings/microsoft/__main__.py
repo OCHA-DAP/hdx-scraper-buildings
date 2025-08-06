@@ -4,7 +4,7 @@ from httpx import AsyncClient
 from pandas import read_csv
 from tqdm.asyncio import tqdm_asyncio
 
-from ..common.config import SKIP_DOWNLOAD, data_dir
+from ..common.config import SKIP_DOWNLOAD, TIMEOUT, data_dir
 from ..common.download import download_gz, vector_to_geoparquet
 from ..common.group import group
 
@@ -27,7 +27,7 @@ async def fetch_url(client: AsyncClient, url: str) -> None:
 
 async def download_files(urls: list[str]) -> None:
     """Download files asynchronusly."""
-    async with AsyncClient(http2=True) as client:
+    async with AsyncClient(timeout=TIMEOUT) as client:
         tasks = [fetch_url(client, url) for url in urls]
         await tqdm_asyncio.gather(*tasks)
 

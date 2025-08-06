@@ -1,6 +1,10 @@
 from os import getenv
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv(override=True)
+
 
 def is_bool_env(env: str) -> bool:
     """Check if env is a boolean."""
@@ -11,7 +15,12 @@ GLOBAL_ADM0 = "https://data.fieldmaps.io/adm0/osm/intl/adm0_polygons.parquet"
 GLOBAL_ADM1 = (
     "https://data.fieldmaps.io/edge-matched/humanitarian/intl/adm1_polygons.parquet"
 )
+
+ATTEMPT = 24  # for 1 day
+TIMEOUT = 60 * 60  # 1 hour
+
 HDX_MAX_SIZE = 1.5 * 1024 * 1024 * 1024  # 1.5 GB
+
 SKIP_DOWNLOAD = is_bool_env(getenv("SKIP_DOWNLOAD", "NO"))
 
 cwd = Path(__file__).parent
