@@ -70,7 +70,9 @@ h11==0.16.0
 hdx-python-api==6.4.6
     # via hdx-scraper-buildings
 hdx-python-country==3.9.6
-    # via hdx-python-api
+    # via
+    #   hdx-python-api
+    #   hdx-scraper-buildings
 hdx-python-utilities==3.8.9
     # via
     #   hdx-python-api

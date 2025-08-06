@@ -1,11 +1,4 @@
-#!/usr/bin/python
-"""Top level script.
-
-Calls other functions that generate datasets that this script then creates in HDX.
-"""
-
 import logging
-from os import getenv
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -13,59 +6,40 @@ from dotenv import load_dotenv
 from hdx.api.configuration import Configuration
 from hdx.data.user import User
 from hdx.facades.infer_arguments import facade
-from hdx.utilities.downloader import Download
 from hdx.utilities.path import script_dir_plus_file, wheretostart_tempdir_batch
-from hdx.utilities.retriever import Retrieve
 
 from ._version import __version__
-from .common.config import is_bool_env
+from .common.config import (
+    PROVIDER_GOOGLE,
+    PROVIDER_MICROSOFT,
+    RUN_GOOGLE,
+    RUN_MICROSOFT,
+    SKIP_DOWNLOAD,
+    data_dir,
+)
+from .dataset import generate_dataset
 from .google import __main__ as google
 from .microsoft import __main__ as microsoft
-from .pipeline import Pipeline
 
 load_dotenv(override=True)
 logger = logging.getLogger(__name__)
 
-RUN_GOOGLE = is_bool_env(getenv("RUN_GOOGLE", "NO"))
-RUN_MICROSOFT = is_bool_env(getenv("RUN_MICROSOFT", "NO"))
-
 _LOOKUP = "hdx-scraper-buildings"
-_SAVED_DATA_DIR = "saved_data"  # Keep in repo to avoid deletion in /tmp
 _UPDATED_BY_SCRIPT = "HDX Scraper: Buildings"
 
 
-def main(
-    save: bool = False,  # noqa: FBT001, FBT002, Save downloaded data
-    use_saved: bool = False,  # noqa: FBT001, FBT002, Use saved data
-) -> None:
-    """Generate datasets and create them in HDX."""
-    logger.info("##### %s version %s ####", _LOOKUP, __version__)
-    configuration = Configuration.read()
-    User.check_current_user_write_access("hdx")
-
+def make_dataset(provider: str) -> None:
+    """Make a dartaset."""
     with wheretostart_tempdir_batch(folder=_LOOKUP) as info:
-        tempdir = info["folder"]
-        with Download() as downloader:
-            retriever = Retrieve(
-                downloader=downloader,
-                fallback_dir=tempdir,
-                saved_dir=_SAVED_DATA_DIR,
-                temp_dir=tempdir,
-                save=save,
-                use_saved=use_saved,
-            )
-            pipeline = Pipeline(configuration, retriever, tempdir)
-
-            if RUN_GOOGLE:
-                google.main()
-            if RUN_MICROSOFT:
-                microsoft.main()
-
-            dataset = pipeline.generate_dataset()
+        for resources in (data_dir / provider / "outputs").iterdir():
+            if not resources.is_dir():
+                continue
+            iso3 = resources.name.upper()
+            dataset = generate_dataset(provider, iso3, resources)
             if dataset:
                 dataset.update_from_yaml(
                     script_dir_plus_file(
-                        str(Path("config") / "hdx_dataset_static.yaml"),
+                        str(Path("config") / f"hdx_dataset_{provider}.yaml"),
                         main,
                     ),
                 )
@@ -76,6 +50,24 @@ def main(
                     updated_by_script=_UPDATED_BY_SCRIPT,
                     batch=info["batch"],
                 )
+
+
+def main() -> None:
+    """Generate datasets and create them in HDX."""
+    logger.info("##### %s version %s ####", _LOOKUP, __version__)
+    Configuration.read()
+    User.check_current_user_write_access("hdx")
+
+    if RUN_GOOGLE:
+        google.main()
+        make_dataset(PROVIDER_GOOGLE)
+        if not SKIP_DOWNLOAD:
+            google.cleanup()
+    if RUN_MICROSOFT:
+        microsoft.main()
+        make_dataset(PROVIDER_MICROSOFT)
+        if not SKIP_DOWNLOAD:
+            microsoft.cleanup()
 
 
 if __name__ == "__main__":

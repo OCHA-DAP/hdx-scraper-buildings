@@ -11,6 +11,12 @@ def is_bool_env(env: str) -> bool:
     return env.lower() in ("true", "yes", "on", "1")
 
 
+PROVIDER_GOOGLE = "google"
+PROVIDER_MICROSOFT = "microsoft"
+
+RUN_GOOGLE = is_bool_env(getenv("RUN_GOOGLE", "NO"))
+RUN_MICROSOFT = is_bool_env(getenv("RUN_MICROSOFT", "NO"))
+
 GLOBAL_ADM0 = "https://data.fieldmaps.io/adm0/osm/intl/adm0_polygons.parquet"
 GLOBAL_ADM1 = (
     "https://data.fieldmaps.io/edge-matched/humanitarian/intl/adm1_polygons.parquet"

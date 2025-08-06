@@ -1,14 +1,14 @@
 import asyncio
+from shutil import rmtree
 
 from httpx import AsyncClient
 from pandas import read_csv
 from tqdm.asyncio import tqdm_asyncio
 
-from ..common.config import SKIP_DOWNLOAD, TIMEOUT, data_dir
+from ..common.config import PROVIDER_MICROSOFT, SKIP_DOWNLOAD, TIMEOUT, data_dir
 from ..common.download import download_gz, vector_to_geoparquet
 from ..common.group import group
 
-PROVIDER = "microsoft"
 DATASET_LINKS = (
     "https://minedbuildings.z5.web.core.windows.net/global-buildings/dataset-links.csv"
 )
@@ -16,7 +16,7 @@ DATASET_LINKS = (
 
 async def fetch_url(client: AsyncClient, url: str) -> None:
     """Download a large file from a URL in chunks using httpx."""
-    output_dir = data_dir / PROVIDER / "inputs"
+    output_dir = data_dir / PROVIDER_MICROSOFT / "inputs"
     file_name = url.split("/global-buildings.geojsonl/")[-1]
     output_path = output_dir / file_name.replace(".csv.gz", ".geojsonl")
     output_parquet = output_dir / file_name.replace(".csv.gz", ".parquet")
@@ -43,7 +43,12 @@ def main() -> None:
     """Entrypoint to the function."""
     if not SKIP_DOWNLOAD:
         download()
-    group(PROVIDER)
+    group(PROVIDER_MICROSOFT)
+
+
+def cleanup() -> None:
+    """Remove temporary files."""
+    rmtree(data_dir / PROVIDER_MICROSOFT, ignore_errors=True)
 
 
 if __name__ == "__main__":

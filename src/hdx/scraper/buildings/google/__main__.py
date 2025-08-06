@@ -1,21 +1,21 @@
 import asyncio
+from shutil import rmtree
 
 from geopandas import read_file
 from httpx import AsyncClient
 from tqdm.asyncio import tqdm_asyncio
 
-from ..common.config import SKIP_DOWNLOAD, TIMEOUT, data_dir
+from ..common.config import PROVIDER_GOOGLE, SKIP_DOWNLOAD, TIMEOUT, data_dir
 from ..common.download import csv_to_geoparquet, download_gz
 from ..common.group import group
 
-PROVIDER = "google"
 DATASET_LINKS = "https://researchsites.withgoogle.com/tiles.geojson"
 CSV_COLUMNS = "area_in_meters,confidence"
 
 
 async def fetch_url(client: AsyncClient, url: str) -> None:
     """Download a large file from a URL in chunks using httpx."""
-    output_dir = data_dir / PROVIDER / "inputs"
+    output_dir = data_dir / PROVIDER_GOOGLE / "inputs"
     file_name = url.split("/")[-1]
     output_file = output_dir / file_name.replace(".csv.gz", ".csv")
     output_parquet = output_dir / file_name.replace(".csv.gz", ".parquet")
@@ -42,7 +42,12 @@ def main() -> None:
     """Entrypoint to the function."""
     if not SKIP_DOWNLOAD:
         download()
-    group(PROVIDER)
+    group(PROVIDER_GOOGLE)
+
+
+def cleanup() -> None:
+    """Remove temporary files."""
+    rmtree(data_dir / PROVIDER_GOOGLE, ignore_errors=True)
 
 
 if __name__ == "__main__":
