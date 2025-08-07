@@ -1,0 +1,25 @@
+license_id: hdx-odc-odbl
+methodology: Other
+methodology_other: A deep learning model was trained to determine the footprints of buildings from high resolution satellite imagery. Our accompanying technical report describes the methodology used to generate the first version of the dataset. We however made further improvements for the subsequent versions, v2 and v3.
+caveats:
+  "Despite having a diverse set of training data, some scenarios are challenging for the building detection pipeline, including:
+  1) geological or vegetation features which can be confused with built structures;
+  2) settlements with many contiguous buildings not having clear delineations;
+  3) areas characterised by small buildings, which can appear only a few pixels wide at the given image resolution;
+  4) rural or desert areas, where buildings constructed with natural materials tend to visually blend into the surrounding area;
+  5) areas with high-rise buildings: our model is trained to detect building rooftop rather than base and as a result, depending on satellite image's viewing angle, roofs of high rise buildings jump around which makes it challenging to track buildings across a stack of imagery in a given location.
+
+  See the technical report for more details."
+dataset_source: Google Earth imagery
+package_creator: HDX Data Systems Team
+dataset_date: "[2023-05-30T00:00:00 TO 2023-05-30T23:59:59]"
+private: False
+maintainer: maxmalynowsky
+owner_org: hdx
+data_update_frequency: -2
+notes:
+  "This large-scale open dataset consists of outlines of buildings derived from high-resolution 50 cm satellite imagery. It contains 1.8B building detections in Africa, Latin America, Caribbean, South Asia and Southeast Asia. The inference spanned an area of 58M km².
+  For each building in this dataset we include the polygon describing its footprint on the ground, a confidence score indicating how sure we are that this is a building, and a Plus Code corresponding to the center of the building. There is no information about the type of building, its street address, or any details other than its geometry.
+  Building footprints are useful for a range of important applications: from population estimation, urban planning and humanitarian response to environmental and climate science. The project is based in Ghana, with an initial focus on the continent of Africa and new updates on South Asia, South-East Asia, Latin America and the Caribbean.
+  Inference was carried out during May 2023.
+  For more details see the official website of the Open Buildings dataset."
