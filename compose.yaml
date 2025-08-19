@@ -1,5 +1,6 @@
 services:
   hdx-scraper-buildings:
+    platform: linux/amd64
     build: .
     env_file: .env
     volumes:

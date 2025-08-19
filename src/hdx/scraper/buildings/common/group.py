@@ -18,6 +18,7 @@ def group_by_adm1(output_dir: Path, iso3: str, adm1_id: str, adm_name: str) -> N
     output_gdb = output_dir / f"{output_name}.gdb"
     with connect() as con:
         con.sql(f"""
+            INSTALL spatial;
             LOAD spatial;
             CREATE TABLE bounds AS (
                 SELECT geometry, geometry_bbox AS bbox
@@ -72,6 +73,7 @@ def group_by_adm0(provider: str, iso3: str) -> None:
     output_gdb_zip = output_dir / f"{output_name}.gdb.zip"
     with connect() as con:
         con.sql(f"""
+            INSTALL spatial;
             LOAD spatial;
             CREATE TABLE bounds AS (
                 SELECT
