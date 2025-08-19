@@ -31,8 +31,8 @@ dependencies = [
 dev = ["pre-commit", "pytest-cov", "pytest", "ruff", "taskipy"]
 
 [tool.taskipy.tasks]
-app = "python -m src.hdx.scraper.buildings"
-google = "python -m src.hdx.scraper.buildings.google"
-microsoft = "python -m src.hdx.scraper.buildings.microsoft"
+app = "python -m hdx.scraper.buildings"
+google = "python -m hdx.scraper.buildings.google"
+microsoft = "python -m hdx.scraper.buildings.microsoft"
 export = "uv sync -q && uv export -o requirements.txt -q --no-dev --no-emit-project --no-hashes && uv export -o requirements-dev.txt -q --no-emit-project --no-hashes"
 ruff = "ruff format && ruff check && ruff format"
