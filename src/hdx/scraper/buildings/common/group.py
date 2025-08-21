@@ -4,10 +4,8 @@ from shutil import make_archive, rmtree
 from subprocess import run
 
 from duckdb import connect
-from pandas import read_csv
-from tqdm import tqdm
 
-from .config import GLOBAL_ADM0, GLOBAL_ADM1, HDX_MAX_SIZE, cwd, data_dir, iso3_filter
+from .config import AWS_ENDPOINT_S3, GLOBAL_ADM0, GLOBAL_ADM1, HDX_MAX_SIZE
 
 
 def group_by_adm1(output_dir: Path, iso3: str, adm1_id: str, adm_name: str) -> None:
@@ -61,10 +59,9 @@ def get_adm1_info(iso3: str) -> list[tuple[str, str, str]]:
         """).fetchall()
 
 
-def group_by_adm0(provider: str, iso3: str) -> None:
+def group(provider: str, iso3: str, output_dir: Path) -> None:
     """Create a zipped File Geodatabase for a given country."""
-    input_path = data_dir / provider / "inputs" / "**/*.parquet"
-    output_dir = data_dir / provider / "outputs" / iso3.lower()
+    input_path = f"s3://{AWS_ENDPOINT_S3}/hdx/{provider}-open-buildings/**/*.parquet"
     output_name = f"{iso3.lower()}_buildings"
     rmtree(output_dir, ignore_errors=True)
     output_dir.mkdir(exist_ok=True, parents=True)
@@ -75,6 +72,9 @@ def group_by_adm0(provider: str, iso3: str) -> None:
         con.sql(f"""
             INSTALL spatial;
             LOAD spatial;
+            INSTALL httpfs;
+            LOAD httpfs;
+            CREATE SECRET (TYPE s3, KEY_ID '', SECRET '');
             CREATE TABLE bounds AS (
                 SELECT
                     ST_MemUnion_Agg(geometry) AS geometry,
@@ -117,16 +117,3 @@ def group_by_adm0(provider: str, iso3: str) -> None:
                 adm_name = sub("[^0-9a-zA-Z]+", "_", adm_name_combined).lower()
             group_by_adm1(output_dir, iso3, adm1_id, adm_name)
     output_gpq.unlink(missing_ok=True)
-
-
-def group(provider: str) -> None:
-    """Partition downloaded building footprints into ADM0 regions."""
-    country_list = cwd / ".." / provider / "countries.csv"
-    country_lookup = read_csv(country_list, usecols=["iso_3"]).drop_duplicates()
-    country_codes = country_lookup["iso_3"].to_list()
-    pbar = tqdm(country_codes)
-    for iso3 in pbar:
-        pbar.set_description(iso3)
-        if len(iso3_filter) and iso3 not in iso3_filter:
-            continue
-        group_by_adm0(provider, iso3)

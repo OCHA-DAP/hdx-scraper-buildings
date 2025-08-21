@@ -4,16 +4,16 @@ from asyncio import create_subprocess_shell
 from pathlib import Path
 
 from httpx import AsyncClient
-from tenacity import retry, stop_after_attempt
+from tenacity import retry, stop_after_attempt, wait_fixed
 
-from .config import ATTEMPT
+from .config import ATTEMPT, AWS_ENDPOINT_URL, WAIT
 
 # Once GDAL 3.12 is available, the following options should be added.
 # --lco=COMPRESSION_LEVEL=15
 # --lco=USE_PARQUET_GEO_TYPES=YES
 
 
-@retry(stop=stop_after_attempt(ATTEMPT))
+@retry(stop=stop_after_attempt(ATTEMPT), wait=wait_fixed(WAIT))
 async def download_gz(client: AsyncClient, url: str, output_path: Path) -> None:
     """Download a large file from a URL in chunks using httpx."""
     output_zip = output_path.with_suffix(output_path.suffix + ".gz")
@@ -41,7 +41,9 @@ async def vector_to_geoparquet(input_path: Path, output_path: Path) -> None:
         "--lco=GEOMETRY_NAME=geometry",
     ]
     process = await create_subprocess_shell(" ".join(cmd))
-    await process.wait()
+    returncode = await process.wait()
+    if returncode != 0:
+        raise ValueError
 
 
 async def csv_to_geoparquet(input_path: Path, output_path: Path, columns: str) -> None:
@@ -63,4 +65,21 @@ async def csv_to_geoparquet(input_path: Path, output_path: Path, columns: str) -
         "--lco=GEOMETRY_NAME=geometry",
     ]
     process = await create_subprocess_shell(" ".join(cmd))
-    await process.wait()
+    returncode = await process.wait()
+    if returncode != 0:
+        raise ValueError
+
+
+@retry(stop=stop_after_attempt(ATTEMPT), wait=wait_fixed(WAIT))
+async def upload_to_s3(provider: str, output_dir: Path, output_path: Path) -> None:
+    """Upload a file to S3 compatible storage."""
+    relative_path = output_path.relative_to(output_dir)
+    cmd = [
+        *["aws", "s3", "cp"],
+        *[str(output_path), f"s3://hdx/{provider}-open-buildings/{relative_path}"],
+        f"--endpoint-url={AWS_ENDPOINT_URL}",
+    ]
+    process = await create_subprocess_shell(" ".join(cmd))
+    returncode = await process.wait()
+    if returncode != 0:
+        raise ValueError

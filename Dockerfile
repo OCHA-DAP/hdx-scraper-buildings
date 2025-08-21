@@ -4,6 +4,7 @@ WORKDIR /srv
 
 RUN --mount=type=bind,source=requirements.txt,target=requirements.txt \
     apk add --no-cache \
+    aws-cli \
     gdal-driver-parquet \
     gdal-tools && \
     apk add --no-cache --virtual .build-deps \
