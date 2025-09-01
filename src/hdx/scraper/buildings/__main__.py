@@ -1,87 +1,96 @@
-#!/usr/bin/python
-"""
-Top level script. Calls other functions that generate datasets that this
-script then creates in HDX.
-
-"""
-
 import logging
-from os.path import dirname, expanduser, join
+from pathlib import Path
+from shutil import rmtree
+
+from dotenv import load_dotenv
+from pandas import read_csv
+from tqdm import tqdm
 
 from hdx.api.configuration import Configuration
 from hdx.data.user import User
 from hdx.facades.infer_arguments import facade
-from hdx.scraper.buildings._version import __version__
-from hdx.scraper.buildings.pipeline import Pipeline
-from hdx.utilities.downloader import Download
-from hdx.utilities.path import (
-    script_dir_plus_file,
-    wheretostart_tempdir_batch,
-)
-from hdx.utilities.retriever import Retrieve
+from hdx.utilities.path import script_dir_plus_file, wheretostart_tempdir_batch
 
+from ._version import __version__
+from .common.config import (
+    PROVIDER_GOOGLE,
+    PROVIDER_MICROSOFT,
+    RUN_GOOGLE,
+    RUN_MICROSOFT,
+    SKIP_DOWNLOAD,
+    SKIP_GROUPING,
+    cwd,
+    data_dir,
+    iso3_filter,
+)
+from .common.group import group
+from .dataset import generate_dataset
+from .google import __main__ as google
+from .microsoft import __main__ as microsoft
+
+load_dotenv(override=True)
 logger = logging.getLogger(__name__)
 
 _LOOKUP = "hdx-scraper-buildings"
-_SAVED_DATA_DIR = "saved_data"  # Keep in repo to avoid deletion in /tmp
 _UPDATED_BY_SCRIPT = "HDX Scraper: Buildings"
 
 
-def main(
-    save: bool = False,
-    use_saved: bool = False,
-) -> None:
-    """Generate datasets and create them in HDX
-
-    Args:
-        save (bool): Save downloaded data. Defaults to False.
-        use_saved (bool): Use saved data. Defaults to False.
-
-    Returns:
-        None
-    """
-    logger.info(f"##### {_LOOKUP} version {__version__} ####")
-    configuration = Configuration.read()
-    User.check_current_user_write_access("")
-
+def package(provider: str, iso3: str, output_dir: Path) -> None:
+    """Make a dataset."""
     with wheretostart_tempdir_batch(folder=_LOOKUP) as info:
-        tempdir = info["folder"]
-        with Download() as downloader:
-            retriever = Retrieve(
-                downloader=downloader,
-                fallback_dir=tempdir,
-                saved_dir=_SAVED_DATA_DIR,
-                temp_dir=tempdir,
-                save=save,
-                use_saved=use_saved,
+        dataset = generate_dataset(provider, iso3, output_dir)
+        if dataset:
+            dataset.update_from_yaml(
+                script_dir_plus_file(
+                    str(Path("config") / f"hdx_dataset_{provider}.yaml"),
+                    main,
+                ),
             )
-            pipeline = Pipeline(configuration, retriever, tempdir)
-            #
-            # Steps to generate dataset
-            #
-            dataset = pipeline.generate_dataset()
-            if dataset:
-                dataset.update_from_yaml(
-                    script_dir_plus_file(
-                        join("config", "hdx_dataset_static.yaml"), main
-                    )
-                )
-                dataset.create_in_hdx(
-                    remove_additional_resources=True,
-                    match_resource_order=False,
-                    hxl_update=False,
-                    updated_by_script=_UPDATED_BY_SCRIPT,
-                    batch=info["batch"],
-                )
+            dataset.create_in_hdx(
+                remove_additional_resources=True,
+                match_resource_order=False,
+                hxl_update=False,
+                updated_by_script=_UPDATED_BY_SCRIPT,
+                batch=info["batch"],
+            )
+
+
+def group_and_package(provider: str) -> None:
+    """Create resources for each country and then create a HDX dataset."""
+    country_list = cwd / ".." / provider / "countries.csv"
+    country_lookup = read_csv(country_list, usecols=["iso_3"]).drop_duplicates()
+    country_codes = country_lookup["iso_3"].to_list()
+    pbar = tqdm(country_codes)
+    for iso3 in pbar:
+        pbar.set_description(iso3)
+        if len(iso3_filter) and iso3 not in iso3_filter:
+            continue
+        output_dir = data_dir / provider / "outputs" / iso3.lower()
+        group(provider, iso3, output_dir)
+        package(provider, iso3, output_dir)
+        rmtree(output_dir)
+
+
+def main() -> None:
+    """Generate datasets and create them in HDX."""
+    logger.info("##### %s version %s ####", _LOOKUP, __version__)
+    Configuration.read()
+    User.check_current_user_write_access("hdx")
+    if RUN_GOOGLE:
+        if not SKIP_DOWNLOAD:
+            google.main()
+        if not SKIP_GROUPING:
+            group_and_package(PROVIDER_GOOGLE)
+    if RUN_MICROSOFT:
+        if not SKIP_DOWNLOAD:
+            microsoft.main()
+        if not SKIP_GROUPING:
+            group_and_package(PROVIDER_MICROSOFT)
 
 
 if __name__ == "__main__":
     facade(
         main,
-#        hdx_site="dev",
-        user_agent_config_yaml=join(expanduser("~"), ".useragents.yaml"),
+        user_agent_config_yaml=str(Path("~").expanduser() / ".useragents.yaml"),
         user_agent_lookup=_LOOKUP,
-        project_config_yaml=script_dir_plus_file(
-            join("config", "project_configuration.yaml"), main
-        ),
     )

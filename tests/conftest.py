@@ -1,6 +1,7 @@
-from os.path import join
+from pathlib import Path
 
 import pytest
+
 from hdx.api.configuration import Configuration
 from hdx.api.locations import Locations
 from hdx.data.vocabulary import Vocabulary
@@ -9,27 +10,31 @@ from hdx.utilities.useragent import UserAgent
 
 
 @pytest.fixture(scope="session")
-def fixtures_dir():
-    return join("tests", "fixtures")
+def fixtures_dir() -> Path:
+    """Return fixtures directory."""
+    return Path("tests") / "fixtures"
 
 
 @pytest.fixture(scope="session")
-def input_dir(fixtures_dir):
-    return join(fixtures_dir, "input")
+def input_dir(fixtures_dir: Path) -> Path:
+    """Return input directory."""
+    return fixtures_dir / "input"
 
 
 @pytest.fixture(scope="session")
-def config_dir(fixtures_dir):
-    return join("src", "hdx", "scraper", "buildings", "config")
+def config_dir() -> Path:
+    """Return configuration directory."""
+    return Path("src/hdx/scraper/buildings/config")
 
 
 @pytest.fixture(scope="session")
-def configuration(config_dir):
+def configuration(config_dir: Path) -> Configuration:
+    """Return configuration."""
     UserAgent.set_global("test")
-    Configuration._create(
+    Configuration._create(  # noqa: SLF001
         hdx_read_only=True,
         hdx_site="prod",
-        project_config_yaml=join(config_dir, "project_configuration.yaml"),
+        project_config_yaml=config_dir / "project_configuration.yaml",
     )
     # Change locations below to match those needed in tests
     Locations.set_validlocations(
@@ -37,10 +42,10 @@ def configuration(config_dir):
             {"name": "afg", "title": "Afghanistan"},
             {"name": "sdn", "title": "Sudan"},
             {"name": "world", "title": "World"},
-        ]
+        ],
     )
-    Country.countriesdata(False)
-    Vocabulary._approved_vocabulary = {
+    Country.countriesdata(include_unofficial=False)
+    Vocabulary._approved_vocabulary = {  # noqa: SLF001
         "tags": [
             {"name": tag}
             # Change tags below to match those needed in tests

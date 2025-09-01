@@ -11,20 +11,28 @@ build-backend = "hatchling.build"
 [project]
 name = "hdx-scraper-buildings"
 requires-python = ">=3.13"
-dependencies = [
-  "hdx-python-api",
-  "hdx-python-country",
-  "hdx-python-utilities",
-]
-
 dynamic = ["version"]
-
-[project.optional-dependencies]
-test = [
-  "pytest",
-  "pytest-cov"
+dependencies = [
+    "duckdb",
+    "geopandas",
+    "hdx-python-api",
+    "hdx-python-country",
+    "hdx-python-utilities",
+    "httpx",
+    "pandas[performance]",
+    "pyarrow",
+    "python-dotenv",
+    "quantulum3[classifier]",
+    "tenacity",
+    "tqdm",
 ]
-dev = ["pre-commit"]
 
-[project.scripts]
-run = "hdx.scraper.buildings.__main__:main"
+[dependency-groups]
+dev = ["pre-commit", "pytest-cov", "pytest", "ruff", "taskipy"]
+
+[tool.taskipy.tasks]
+app = "python -m hdx.scraper.buildings"
+google = "python -m hdx.scraper.buildings.google"
+microsoft = "python -m hdx.scraper.buildings.microsoft"
+export = "uv sync -q && uv export -o requirements.txt -q --no-dev --no-emit-project --no-hashes && uv export -o requirements-dev.txt -q --no-emit-project --no-hashes"
+ruff = "ruff format && ruff check && ruff format"
