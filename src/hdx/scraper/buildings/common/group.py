@@ -5,7 +5,7 @@ from subprocess import run
 
 from duckdb import connect
 
-from .config import AWS_ENDPOINT_S3, GLOBAL_ADM0, GLOBAL_ADM1, HDX_MAX_SIZE
+from .config import AWS_ENDPOINT_S3, GLOBAL_ADM0, GLOBAL_ADM1, HDX_MAX_SIZE, data_dir
 
 
 def group_by_adm1(output_dir: Path, iso3: str, adm1_id: str, adm_name: str) -> None:
@@ -62,6 +62,7 @@ def get_adm1_info(iso3: str) -> list[tuple[str, str, str]]:
 def group(provider: str, iso3: str, output_dir: Path) -> None:
     """Create a zipped File Geodatabase for a given country."""
     input_path = f"s3://{AWS_ENDPOINT_S3}/hdx/{provider}-open-buildings/**/*.parquet"
+    input_path = data_dir / provider / "inputs/**/*.parquet"
     output_name = f"{iso3.lower()}_buildings"
     rmtree(output_dir, ignore_errors=True)
     output_dir.mkdir(exist_ok=True, parents=True)

@@ -5,8 +5,24 @@ from hdx.data.dataset import Dataset
 from hdx.data.hdxobject import HDXError
 from hdx.data.resource import Resource
 from hdx.location.country import Country
+from tenacity import retry, stop_after_attempt, wait_fixed
+
+from .common.config import ATTEMPT, WAIT
 
 logger = logging.getLogger(__name__)
+
+
+@retry(stop=stop_after_attempt(ATTEMPT), wait=wait_fixed(WAIT))
+def add_resource(dataset: Dataset, resource_path: Path) -> None:
+    """Add a resource to a dataset."""
+    resource_data = {
+        "name": resource_path.name,
+        "description": "Building footprint data as File Geodatabase.",
+    }
+    resource = Resource(resource_data)
+    resource.set_file_to_upload(str(resource_path))
+    resource.set_format("Geodatabase")
+    dataset.add_update_resource(resource)
 
 
 def generate_dataset(provider: str, iso3: str, resources: Path) -> Dataset | None:
@@ -29,15 +45,8 @@ def generate_dataset(provider: str, iso3: str, resources: Path) -> Dataset | Non
     except HDXError:
         logger.exception("Couldn't find country %s, skipping", iso3)
         return None
-    for resource_path in resources.iterdir():
+    for resource_path in sorted(resources.iterdir()):
         if resource_path.suffixes != [".gdb", ".zip"]:
             continue
-        resource_data = {
-            "name": resource_path.name,
-            "description": "Building footprint data as File Geodatabase.",
-        }
-        resource = Resource(resource_data)
-        resource.set_file_to_upload(str(resource_path))
-        resource.set_format("Geodatabase")
-        dataset.add_update_resource(resource)
+        add_resource(dataset, resource_path)
     return dataset

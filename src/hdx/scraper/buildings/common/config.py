@@ -39,10 +39,13 @@ SKIP_GROUPING = is_bool_env(getenv("SKIP_GROUPING", "NO"))
 
 ISO_3_LEN = 3
 
+iso3_include = [
+    x for x in getenv("ISO3_INCLUDE", "").upper().split(",") if len(x) == ISO_3_LEN
+]
+iso3_exclude = [
+    x for x in getenv("ISO3_EXCLUDE", "").upper().split(",") if len(x) == ISO_3_LEN
+]
+
 cwd = Path(__file__).parent
 data_dir = cwd / "../../../../../saved_data"
 data_dir.mkdir(exist_ok=True, parents=True)
-
-iso3_filter = [
-    x for x in getenv("ISO3_FILTER", "").upper().split(",") if len(x) == ISO_3_LEN
-]

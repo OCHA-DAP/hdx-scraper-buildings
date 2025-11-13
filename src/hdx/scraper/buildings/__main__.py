@@ -3,13 +3,11 @@ from pathlib import Path
 from shutil import rmtree
 
 from dotenv import load_dotenv
-from pandas import read_csv
-from tqdm import tqdm
-
 from hdx.api.configuration import Configuration
-from hdx.data.user import User
 from hdx.facades.infer_arguments import facade
 from hdx.utilities.path import script_dir_plus_file, wheretostart_tempdir_batch
+from pandas import read_csv
+from tqdm import tqdm
 
 from ._version import __version__
 from .common.config import (
@@ -19,9 +17,9 @@ from .common.config import (
     RUN_MICROSOFT,
     SKIP_DOWNLOAD,
     SKIP_GROUPING,
-    cwd,
     data_dir,
-    iso3_filter,
+    iso3_exclude,
+    iso3_include,
 )
 from .common.group import group
 from .dataset import generate_dataset
@@ -30,6 +28,7 @@ from .microsoft import __main__ as microsoft
 
 load_dotenv(override=True)
 logger = logging.getLogger(__name__)
+cwd = Path(__file__).parent
 
 _LOOKUP = "hdx-scraper-buildings"
 _UPDATED_BY_SCRIPT = "HDX Scraper: Buildings"
@@ -42,7 +41,7 @@ def package(provider: str, iso3: str, output_dir: Path) -> None:
         if dataset:
             dataset.update_from_yaml(
                 script_dir_plus_file(
-                    str(Path("config") / f"hdx_dataset_{provider}.yaml"),
+                    str(cwd / f"config/hdx_dataset_{provider}.yaml"),
                     main,
                 ),
             )
@@ -57,13 +56,15 @@ def package(provider: str, iso3: str, output_dir: Path) -> None:
 
 def group_and_package(provider: str) -> None:
     """Create resources for each country and then create a HDX dataset."""
-    country_list = cwd / ".." / provider / "countries.csv"
+    country_list = cwd / provider / "countries.csv"
     country_lookup = read_csv(country_list, usecols=["iso_3"]).drop_duplicates()
     country_codes = country_lookup["iso_3"].to_list()
     pbar = tqdm(country_codes)
     for iso3 in pbar:
         pbar.set_description(iso3)
-        if len(iso3_filter) and iso3 not in iso3_filter:
+        if len(iso3_include) and iso3 not in iso3_include:
+            continue
+        if len(iso3_exclude) and iso3 in iso3_exclude:
             continue
         output_dir = data_dir / provider / "outputs" / iso3.lower()
         group(provider, iso3, output_dir)
@@ -75,7 +76,6 @@ def main() -> None:
     """Generate datasets and create them in HDX."""
     logger.info("##### %s version %s ####", _LOOKUP, __version__)
     Configuration.read()
-    User.check_current_user_write_access("hdx")
     if RUN_GOOGLE:
         if not SKIP_DOWNLOAD:
             google.main()

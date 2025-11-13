@@ -15,6 +15,6 @@ package_creator: HDX Data Systems Team
 dataset_date: "[2014-01-01T00:00:00 TO 2024-12-31T23:59:59]"
 private: False
 maintainer: maxmalynowsky
-owner_org: hdx
+owner_org: microsoft-ai4g-lab
 data_update_frequency: -2
 notes: "Bing Maps is releasing open building footprints around the world. We have detected 1.4B buildings from Bing Maps imagery between 2014 and 2024 including Maxar, Airbus, and IGN France imagery. The data is freely available for download and use under ODbL."

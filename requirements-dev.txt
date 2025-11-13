@@ -2,19 +2,17 @@
 #    uv export -o requirements-dev.txt --no-emit-project --no-hashes
 annotated-types==0.7.0
     # via pydantic
-anyio==4.10.0
+anyio==4.11.0
     # via httpx
-attrs==25.3.0
+attrs==25.4.0
     # via
     #   frictionless
     #   jsonlines
     #   jsonschema
     #   referencing
-beautifulsoup4==4.13.4
+beautifulsoup4==4.14.2
     # via wikipedia
-bottleneck==1.5.0
-    # via pandas
-certifi==2025.8.3
+certifi==2025.11.12
     # via
     #   httpcore
     #   httpx
@@ -25,11 +23,11 @@ cfgv==3.4.0
     # via pre-commit
 chardet==5.2.0
     # via frictionless
-charset-normalizer==3.4.2
+charset-normalizer==3.4.4
     # via requests
-ckanapi==4.8
+ckanapi==4.9
     # via hdx-python-api
-click==8.2.1
+click==8.3.0
     # via typer
 colorama==0.4.6
     # via
@@ -39,27 +37,27 @@ colorama==0.4.6
     #   pytest
     #   taskipy
     #   tqdm
-coverage==7.10.2
+coverage==7.11.3
     # via pytest-cov
 defopt==7.0.0
     # via hdx-python-api
 distlib==0.4.0
     # via virtualenv
-dnspython==2.7.0
+dnspython==2.8.0
     # via email-validator
 docopt==0.6.2
     # via
     #   ckanapi
     #   num2words
-docutils==0.22
+docutils==0.22.3
     # via defopt
-duckdb==1.3.2
+duckdb==1.4.2
     # via hdx-scraper-buildings
-email-validator==2.2.0
+email-validator==2.3.0
     # via hdx-python-api
 et-xmlfile==2.0.0
     # via openpyxl
-filelock==3.18.0
+filelock==3.20.0
     # via virtualenv
 frictionless==5.18.1
     # via hdx-python-utilities
@@ -67,13 +65,13 @@ geopandas==1.1.1
     # via hdx-scraper-buildings
 h11==0.16.0
     # via httpcore
-hdx-python-api==6.4.6
+hdx-python-api==6.5.3
     # via hdx-scraper-buildings
-hdx-python-country==3.9.6
+hdx-python-country==3.9.8
     # via
     #   hdx-python-api
     #   hdx-scraper-buildings
-hdx-python-utilities==3.8.9
+hdx-python-utilities==3.9.5
     # via
     #   hdx-python-api
     #   hdx-python-country
@@ -82,27 +80,27 @@ httpcore==1.0.9
     # via httpx
 httpx==0.28.1
     # via hdx-scraper-buildings
-humanize==4.12.3
+humanize==4.14.0
     # via frictionless
-identify==2.6.12
+identify==2.6.15
     # via pre-commit
-idna==3.10
+idna==3.11
     # via
     #   anyio
     #   email-validator
     #   httpx
     #   requests
-ijson==3.4.0
+ijson==3.4.0.post0
     # via hdx-python-utilities
 inflect==7.5.0
     # via quantulum3
-iniconfig==2.1.0
+iniconfig==2.3.0
     # via pytest
 isodate==0.7.2
     # via frictionless
 jinja2==3.1.6
     # via frictionless
-joblib==1.5.1
+joblib==1.5.2
     # via
     #   quantulum3
     #   scikit-learn
@@ -110,31 +108,29 @@ jsonlines==4.0.0
     # via hdx-python-utilities
 jsonpath-ng==1.7.0
     # via libhxl
-jsonschema==4.25.0
+jsonschema==4.25.1
     # via
     #   frictionless
     #   tableschema-to-template
-jsonschema-specifications==2025.4.1
+jsonschema-specifications==2025.9.1
     # via jsonschema
 libhxl==5.2.2
     # via
     #   hdx-python-api
     #   hdx-python-country
-llvmlite==0.44.0
-    # via numba
 loguru==0.7.3
     # via hdx-python-utilities
 makefun==1.16.0
     # via hdx-python-api
-markdown-it-py==3.0.0
+markdown-it-py==4.0.0
     # via rich
-marko==2.1.4
+marko==2.2.1
     # via frictionless
-markupsafe==3.0.2
+markupsafe==3.0.3
     # via jinja2
 mdurl==0.1.2
     # via markdown-it-py
-more-itertools==10.7.0
+more-itertools==10.8.0
     # via inflect
 mslex==1.3.0 ; sys_platform == 'win32'
     # via taskipy
@@ -142,16 +138,9 @@ nodeenv==1.9.1
     # via pre-commit
 num2words==0.5.14
     # via quantulum3
-numba==0.61.2
-    # via pandas
-numexpr==2.11.0
-    # via pandas
-numpy==2.2.6
+numpy==2.3.4
     # via
-    #   bottleneck
     #   geopandas
-    #   numba
-    #   numexpr
     #   pandas
     #   pyogrio
     #   quantulum3
@@ -165,13 +154,13 @@ packaging==25.0
     #   geopandas
     #   pyogrio
     #   pytest
-pandas==2.3.1
+pandas==2.3.3
     # via
     #   geopandas
     #   hdx-scraper-buildings
 petl==1.7.17
     # via frictionless
-platformdirs==4.3.8
+platformdirs==4.5.0
     # via virtualenv
 pluggy==1.6.0
     # via
@@ -183,14 +172,14 @@ ply==3.11
     #   libhxl
 pockets==0.9.1
     # via sphinxcontrib-napoleon
-pre-commit==4.2.0
+pre-commit==4.4.0
 psutil==6.1.1
     # via taskipy
-pyarrow==21.0.0
+pyarrow==22.0.0
     # via hdx-scraper-buildings
-pydantic==2.11.7
+pydantic==2.12.4
     # via frictionless
-pydantic-core==2.33.2
+pydantic-core==2.41.5
     # via pydantic
 pygments==2.19.2
     # via
@@ -200,18 +189,18 @@ pyogrio==0.11.1
     # via geopandas
 pyphonetics==0.5.3
     # via hdx-python-utilities
-pyproj==3.7.1
+pyproj==3.7.2
     # via geopandas
-pytest==8.4.1
+pytest==9.0.1
     # via pytest-cov
-pytest-cov==6.2.1
+pytest-cov==7.0.0
 python-dateutil==2.9.0.post0
     # via
     #   frictionless
     #   hdx-python-utilities
     #   libhxl
     #   pandas
-python-dotenv==1.1.1
+python-dotenv==1.2.1
     # via hdx-scraper-buildings
 python-io-wrapper==0.3.1
     # via libhxl
@@ -221,7 +210,7 @@ python-slugify==8.0.4
     #   frictionless
 pytz==2025.2
     # via pandas
-pyyaml==6.0.2
+pyyaml==6.0.3
     # via
     #   frictionless
     #   pre-commit
@@ -232,11 +221,11 @@ quantulum3==0.9.2
     #   hdx-scraper-buildings
 ratelimit==2.2.1
     # via hdx-python-utilities
-referencing==0.36.2
+referencing==0.37.0
     # via
     #   jsonschema
     #   jsonschema-specifications
-requests==2.32.4
+requests==2.32.5
     # via
     #   ckanapi
     #   frictionless
@@ -244,36 +233,36 @@ requests==2.32.4
     #   libhxl
     #   requests-file
     #   wikipedia
-requests-file==2.1.0
+requests-file==3.0.1
     # via hdx-python-utilities
 rfc3986==2.0.0
     # via frictionless
-rich==14.1.0
+rich==14.2.0
     # via typer
-rpds-py==0.26.0
+rpds-py==0.28.0
     # via
     #   jsonschema
     #   referencing
-ruamel-yaml==0.18.14
+ruamel-yaml==0.18.16
     # via hdx-python-utilities
-ruamel-yaml-clib==0.2.12 ; python_full_version < '3.14' and platform_python_implementation == 'CPython'
+ruamel-yaml-clib==0.2.14 ; platform_python_implementation == 'CPython'
     # via ruamel-yaml
-ruff==0.12.7
-scikit-learn==1.7.1
+ruff==0.14.4
+scikit-learn==1.7.2
     # via quantulum3
-scipy==1.16.1
+scipy==1.16.3
     # via
     #   quantulum3
     #   scikit-learn
 setuptools==80.9.0
     # via ckanapi
-shapely==2.1.1
+shapely==2.1.2
     # via geopandas
 shellingham==1.5.4
     # via typer
 simpleeval==1.0.3
     # via frictionless
-simplejson==3.20.1
+simplejson==3.20.2
     # via ckanapi
 six==1.17.0
     # via
@@ -283,13 +272,13 @@ six==1.17.0
     #   sphinxcontrib-napoleon
 sniffio==1.3.1
     # via anyio
-soupsieve==2.7
+soupsieve==2.8
     # via beautifulsoup4
 sphinxcontrib-napoleon==0.7
     # via defopt
 stemming==1.0.1
     # via quantulum3
-structlog==25.4.0
+structlog==25.5.0
     # via libhxl
 tableschema-to-template==0.0.13
     # via hdx-python-utilities
@@ -304,15 +293,15 @@ text-unidecode==1.3
     # via python-slugify
 threadpoolctl==3.6.0
     # via scikit-learn
-tomli==2.2.1 ; python_full_version < '4'
+tomli==2.3.0
     # via taskipy
 tqdm==4.67.1
     # via hdx-scraper-buildings
 typeguard==4.4.4
     # via inflect
-typer==0.16.0
+typer==0.20.0
     # via frictionless
-typing-extensions==4.14.1
+typing-extensions==4.15.0
     # via
     #   beautifulsoup4
     #   frictionless
@@ -321,7 +310,7 @@ typing-extensions==4.14.1
     #   typeguard
     #   typer
     #   typing-inspection
-typing-inspection==0.4.1
+typing-inspection==0.4.2
     # via pydantic
 tzdata==2025.2
     # via pandas
@@ -335,7 +324,7 @@ urllib3==2.5.0
     #   requests
 validators==0.35.0
     # via frictionless
-virtualenv==20.33.0
+virtualenv==20.35.4
     # via pre-commit
 wheel==0.45.1
     # via libhxl
@@ -349,7 +338,7 @@ xlrd3==1.1.0
     # via libhxl
 xlsx2csv==0.8.4
     # via hdx-python-utilities
-xlsxwriter==3.2.5
+xlsxwriter==3.2.9
     # via tableschema-to-template
 xlwt==1.3.0
     # via hdx-python-utilities

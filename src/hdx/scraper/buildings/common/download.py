@@ -6,7 +6,7 @@ from pathlib import Path
 from httpx import AsyncClient
 from tenacity import retry, stop_after_attempt, wait_fixed
 
-from .config import ATTEMPT, AWS_ENDPOINT_URL, WAIT
+from .config import ATTEMPT, AWS_ENDPOINT_S3, WAIT
 
 # Once GDAL 3.12 is available, the following options should be added.
 # --lco=COMPRESSION_LEVEL=15
@@ -76,8 +76,8 @@ async def upload_to_s3(provider: str, output_dir: Path, output_path: Path) -> No
     relative_path = output_path.relative_to(output_dir)
     cmd = [
         *["aws", "s3", "cp"],
-        *[str(output_path), f"s3://hdx/{provider}-open-buildings/{relative_path}"],
-        f"--endpoint-url={AWS_ENDPOINT_URL}",
+        str(output_path),
+        f"s3://{AWS_ENDPOINT_S3}/hdx/{provider}-open-buildings/{relative_path}",
     ]
     process = await create_subprocess_shell(" ".join(cmd))
     returncode = await process.wait()

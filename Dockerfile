@@ -9,9 +9,7 @@ RUN --mount=type=bind,source=requirements.txt,target=requirements.txt \
     gdal-tools && \
     apk add --no-cache --virtual .build-deps \
     build-base \
-    gdal-dev \
-    llvm15-dev && \
-    LLVM_CONFIG=/usr/bin/llvm-config-15 \
+    gdal-dev && \
     pip install --no-cache-dir -r requirements.txt && \
     apk del .build-deps && \
     rm -rf /var/lib/apk/*

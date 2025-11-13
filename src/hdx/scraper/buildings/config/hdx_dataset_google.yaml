@@ -15,7 +15,7 @@ package_creator: HDX Data Systems Team
 dataset_date: "[2023-05-30T00:00:00 TO 2023-05-30T23:59:59]"
 private: False
 maintainer: maxmalynowsky
-owner_org: hdx
+owner_org: google-research
 data_update_frequency: -2
 notes:
   "This large-scale open dataset consists of outlines of buildings derived from high-resolution 50 cm satellite imagery. It contains 1.8B building detections in Africa, Latin America, Caribbean, South Asia and Southeast Asia. The inference spanned an area of 58M km².
