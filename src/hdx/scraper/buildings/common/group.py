@@ -5,7 +5,7 @@ from subprocess import run
 
 from duckdb import connect
 
-from .config import AWS_ENDPOINT_S3, GLOBAL_ADM0, GLOBAL_ADM1, HDX_MAX_SIZE, data_dir
+from .config import AWS_ENDPOINT_S3, GLOBAL_ADM0, GLOBAL_ADM1, HDX_MAX_SIZE
 
 
 def group_by_adm1(output_dir: Path, iso3: str, adm1_id: str, adm_name: str) -> None:
@@ -43,7 +43,7 @@ def group_by_adm1(output_dir: Path, iso3: str, adm1_id: str, adm_name: str) -> N
             TO '{output_gpq}'
             WITH (COMPRESSION zstd);
         """)
-    run(["gdal", "vector", "convert", output_gpq, output_gdb], check=False)
+    run(["gdal", "vector", "convert", output_gpq, output_gdb, "--quiet"], check=False)
     make_archive(str(output_gdb), "zip", output_gdb)
     rmtree(output_gdb)
     output_gpq.unlink()
@@ -62,7 +62,6 @@ def get_adm1_info(iso3: str) -> list[tuple[str, str, str]]:
 def group(provider: str, iso3: str, output_dir: Path) -> None:
     """Create a zipped File Geodatabase for a given country."""
     input_path = f"s3://{AWS_ENDPOINT_S3}/hdx/{provider}-open-buildings/**/*.parquet"
-    input_path = data_dir / provider / "inputs/**/*.parquet"
     output_name = f"{iso3.lower()}_buildings"
     rmtree(output_dir, ignore_errors=True)
     output_dir.mkdir(exist_ok=True, parents=True)
@@ -105,7 +104,7 @@ def group(provider: str, iso3: str, output_dir: Path) -> None:
             TO '{output_gpq}'
             WITH (COMPRESSION zstd);
         """)
-    run(["gdal", "vector", "convert", output_gpq, output_gdb], check=False)
+    run(["gdal", "vector", "convert", output_gpq, output_gdb, "--quiet"], check=False)
     make_archive(str(output_gdb), "zip", output_gdb)
     rmtree(output_gdb)
     if output_gdb_zip.stat().st_size > HDX_MAX_SIZE:
