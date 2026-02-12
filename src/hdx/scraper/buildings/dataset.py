@@ -37,7 +37,7 @@ def generate_dataset(provider: str, iso3: str, resources: Path) -> Dataset | Non
             "title": f"{country_name}: {provider.title()} Building Footprints",
         },
     )
-    dataset_tags = ["facilities-infrastructure"]
+    dataset_tags = ["facilities-infrastructure", "geodata"]
     dataset.add_tags(dataset_tags)
     dataset.set_subnational(True)
     try:

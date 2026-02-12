@@ -8,17 +8,13 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 
 from .config import ATTEMPT, AWS_ENDPOINT_S3, WAIT
 
-# Once GDAL 3.12 is available, the following options should be added.
-# --lco=COMPRESSION_LEVEL=15
-# --lco=USE_PARQUET_GEO_TYPES=YES
-
 
 @retry(stop=stop_after_attempt(ATTEMPT), wait=wait_fixed(WAIT))
 async def download_gz(client: AsyncClient, url: str, output_path: Path) -> None:
     """Download a large file from a URL in chunks using httpx."""
     output_zip = output_path.with_suffix(output_path.suffix + ".gz")
     output_path.parent.mkdir(exist_ok=True, parents=True)
-    output_path.unlink(missing_ok=True)
+    output_path.unlink(missing_ok=True)  # noqa: ASYNC240
     output_zip.unlink(missing_ok=True)
     with output_zip.open("wb") as f:
         async with client.stream("GET", url) as r:
@@ -37,8 +33,11 @@ async def vector_to_geoparquet(input_path: Path, output_path: Path) -> None:
         *["gdal", "vector", "convert"],
         *[str(input_path), str(output_path)],
         "--overwrite",
+        "--quiet",
+        "--lco=COMPRESSION_LEVEL=15",
         "--lco=COMPRESSION=ZSTD",
         "--lco=GEOMETRY_NAME=geometry",
+        "--lco=USE_PARQUET_GEO_TYPES=ONLY",
     ]
     process = await create_subprocess_shell(" ".join(cmd))
     returncode = await process.wait()
@@ -61,8 +60,11 @@ async def csv_to_geoparquet(input_path: Path, output_path: Path, columns: str) -
         *["select", f"{columns},geometry", "!"],
         *["write", str(output_path)],
         "--overwrite",
+        "--quiet",
+        "--lco=COMPRESSION_LEVEL=15",
         "--lco=COMPRESSION=ZSTD",
         "--lco=GEOMETRY_NAME=geometry",
+        "--lco=USE_PARQUET_GEO_TYPES=ONLY",
     ]
     process = await create_subprocess_shell(" ".join(cmd))
     returncode = await process.wait()

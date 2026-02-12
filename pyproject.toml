@@ -1,17 +1,11 @@
-#########################
-# Project Configuration #
-#########################
-
-# Project name and version needed to run tests
-
 [build-system]
-requires = ["hatchling", "hatch-vcs"]
+requires = ["hatchling", "uv-dynamic-versioning"]
 build-backend = "hatchling.build"
 
 [project]
 name = "hdx-scraper-buildings"
-requires-python = "~=3.13.0"
 dynamic = ["version"]
+requires-python = ">=3.13"
 dependencies = [
     "duckdb",
     "geopandas",
@@ -28,12 +22,27 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pre-commit", "pytest-cov", "pytest", "ruff", "taskipy"]
+dev = ["pre-commit", "pytest", "pytest-cov", "ruff", "taskipy"]
+
+[tool.hatch]
+version.source = "uv-dynamic-versioning"
+build.hooks.version.path = "src/hdx/scraper/buildings/_version.py"
+build.targets.wheel.packages = ["src/hdx"]
+
+[tool.pytest.ini_options]
+addopts = "--color=yes"
+log_cli = true
+pythonpath = "src"
+
+[tool.ruff]
+exclude = ["_version.py"]
+fix = true
+lint.select = ["ALL"]
+lint.ignore = ["D100", "D104", "INP001", "S603", "S607", "S608", "TID252"]
 
 [tool.taskipy.tasks]
 # uv run task app
-app = "python -m hdx.scraper.buildings"
+app = "python run.py"
 google = "python -m hdx.scraper.buildings.google"
 microsoft = "python -m hdx.scraper.buildings.microsoft"
-export = "uv sync -q && uv export -o requirements.txt -q --no-dev --no-emit-project --no-hashes && uv export -o requirements-dev.txt -q --no-emit-project --no-hashes"
 ruff = "ruff format && ruff check && ruff format"

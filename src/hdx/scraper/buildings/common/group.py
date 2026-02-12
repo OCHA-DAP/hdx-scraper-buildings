@@ -19,25 +19,30 @@ def group_by_adm1(output_dir: Path, iso3: str, adm1_id: str, adm_name: str) -> N
             INSTALL spatial;
             LOAD spatial;
             CREATE TABLE bounds AS (
-                SELECT geometry, geometry_bbox AS bbox
+                SELECT
+                    geometry,
+                    ST_XMin(geometry) AS xmin,
+                    ST_YMin(geometry) AS ymin,
+                    ST_XMax(geometry) AS xmax,
+                    ST_YMax(geometry) AS ymax
                 FROM '{GLOBAL_ADM1}'
                 WHERE
                     iso_3 = '{iso3}' AND
                     adm1_id = '{adm1_id}'
             );
-            SET VARIABLE xmin = (SELECT bbox.xmin FROM bounds);
-            SET VARIABLE ymin = (SELECT bbox.ymin FROM bounds);
-            SET VARIABLE xmax = (SELECT bbox.xmax FROM bounds);
-            SET VARIABLE ymax = (SELECT bbox.ymax FROM bounds);
+            SET VARIABLE xmin = (SELECT xmin FROM bounds);
+            SET VARIABLE ymin = (SELECT ymin FROM bounds);
+            SET VARIABLE xmax = (SELECT xmax FROM bounds);
+            SET VARIABLE ymax = (SELECT ymax FROM bounds);
             SET VARIABLE geometry = (SELECT geometry FROM bounds);
             COPY (
                 SELECT *
                 FROM '{input_path}'
                 WHERE
-                    bbox.xmin > getvariable('xmin') AND
-                    bbox.xmax < getvariable('xmax') AND
-                    bbox.ymin > getvariable('ymin') AND
-                    bbox.ymax < getvariable('ymax') AND
+                    ST_XMin(geometry) <= getvariable('xmax') AND
+                    ST_XMax(geometry) >= getvariable('xmin') AND
+                    ST_YMin(geometry) <= getvariable('ymax') AND
+                    ST_YMax(geometry) >= getvariable('ymin') AND
                     ST_Intersects(geometry, getvariable('geometry'))
             )
             TO '{output_gpq}'
@@ -75,30 +80,33 @@ def group(provider: str, iso3: str, output_dir: Path) -> None:
             INSTALL httpfs;
             LOAD httpfs;
             CREATE SECRET (TYPE s3, KEY_ID '', SECRET '');
+
             CREATE TABLE bounds AS (
                 SELECT
                     ST_MemUnion_Agg(geometry) AS geometry,
-                    min(geometry_bbox.xmin) AS xmin,
-                    min(geometry_bbox.ymin) AS ymin,
-                    max(geometry_bbox.xmax) AS xmax,
-                    max(geometry_bbox.ymax) AS ymax
+                    min(ST_XMin(geometry)) AS xmin,
+                    min(ST_YMin(geometry)) AS ymin,
+                    max(ST_XMax(geometry)) AS xmax,
+                    max(ST_YMax(geometry)) AS ymax
                 FROM '{GLOBAL_ADM0}'
                 WHERE iso_3 = '{iso3}'
                 GROUP BY iso_3
             );
+
             SET VARIABLE xmin = (SELECT xmin FROM bounds);
             SET VARIABLE ymin = (SELECT ymin FROM bounds);
             SET VARIABLE xmax = (SELECT xmax FROM bounds);
             SET VARIABLE ymax = (SELECT ymax FROM bounds);
             SET VARIABLE geometry = (SELECT geometry FROM bounds);
+
             COPY (
-                SELECT * RENAME (geometry_bbox AS bbox)
+                SELECT *
                 FROM '{input_path}'
                 WHERE
-                    geometry_bbox.xmin > getvariable('xmin') AND
-                    geometry_bbox.xmax < getvariable('xmax') AND
-                    geometry_bbox.ymin > getvariable('ymin') AND
-                    geometry_bbox.ymax < getvariable('ymax') AND
+                    ST_XMin(geometry) <= getvariable('xmax') AND
+                    ST_XMax(geometry) >= getvariable('xmin') AND
+                    ST_YMin(geometry) <= getvariable('ymax') AND
+                    ST_YMax(geometry) >= getvariable('ymin') AND
                     ST_Intersects(geometry, getvariable('geometry'))
             )
             TO '{output_gpq}'
