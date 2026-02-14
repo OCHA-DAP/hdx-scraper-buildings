@@ -26,7 +26,9 @@ async def download_gz(client: AsyncClient, url: str, output_path: Path) -> None:
     output_zip.unlink(missing_ok=True)
 
 
-async def vector_to_geoparquet(input_path: Path, output_path: Path) -> None:
+async def vector_to_geoparquet(
+    input_path: Path, output_path: Path, *, use_parquet_geo_types: str | None = "YES"
+) -> None:
     """Download files from url to local directory."""
     output_path.parent.mkdir(exist_ok=True, parents=True)
     cmd = [
@@ -37,15 +39,22 @@ async def vector_to_geoparquet(input_path: Path, output_path: Path) -> None:
         "--lco=COMPRESSION_LEVEL=15",
         "--lco=COMPRESSION=ZSTD",
         "--lco=GEOMETRY_NAME=geometry",
-        "--lco=USE_PARQUET_GEO_TYPES=ONLY",
     ]
+    if use_parquet_geo_types:
+        cmd.append(f"--lco=USE_PARQUET_GEO_TYPES={use_parquet_geo_types}")
     process = await create_subprocess_shell(" ".join(cmd))
     returncode = await process.wait()
     if returncode != 0:
         raise ValueError
 
 
-async def csv_to_geoparquet(input_path: Path, output_path: Path, columns: str) -> None:
+async def csv_to_geoparquet(
+    input_path: Path,
+    output_path: Path,
+    columns: str,
+    *,
+    use_parquet_geo_types: str | None = "YES",
+) -> None:
     """Download files from url to local directory."""
     output_path.parent.mkdir(exist_ok=True, parents=True)
     open_options = [
@@ -64,8 +73,9 @@ async def csv_to_geoparquet(input_path: Path, output_path: Path, columns: str) -
         "--lco=COMPRESSION_LEVEL=15",
         "--lco=COMPRESSION=ZSTD",
         "--lco=GEOMETRY_NAME=geometry",
-        "--lco=USE_PARQUET_GEO_TYPES=ONLY",
     ]
+    if use_parquet_geo_types:
+        cmd.append(f"--lco=USE_PARQUET_GEO_TYPES={use_parquet_geo_types}")
     process = await create_subprocess_shell(" ".join(cmd))
     returncode = await process.wait()
     if returncode != 0:
@@ -73,13 +83,16 @@ async def csv_to_geoparquet(input_path: Path, output_path: Path, columns: str) -
 
 
 @retry(stop=stop_after_attempt(ATTEMPT), wait=wait_fixed(WAIT))
-async def upload_to_s3(provider: str, output_dir: Path, output_path: Path) -> None:
+async def upload_to_s3(
+    provider: str, output_dir: Path, output_path: Path, subfolder: str = ""
+) -> None:
     """Upload a file to S3 compatible storage."""
     relative_path = output_path.relative_to(output_dir)
+    prefix = f"{subfolder}/" if subfolder else ""
     cmd = [
         *["aws", "s3", "cp"],
         str(output_path),
-        f"s3://{AWS_ENDPOINT_S3}/hdx/{provider}-open-buildings/{relative_path}",
+        f"s3://{AWS_ENDPOINT_S3}/hdx/{provider}-open-buildings/{prefix}{relative_path}",
     ]
     process = await create_subprocess_shell(" ".join(cmd))
     returncode = await process.wait()

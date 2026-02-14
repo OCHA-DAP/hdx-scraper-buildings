@@ -10,13 +10,14 @@ from pandas import read_csv
 from tqdm import tqdm
 
 from ._version import __version__
+from .common.admin0 import download_admin0
 from .common.config import (
     PROVIDER_GOOGLE,
     PROVIDER_MICROSOFT,
+    RUN_DOWNLOAD,
     RUN_GOOGLE,
+    RUN_GROUPING,
     RUN_MICROSOFT,
-    SKIP_DOWNLOAD,
-    SKIP_GROUPING,
     data_dir,
     iso3_exclude,
     iso3_include,
@@ -34,7 +35,7 @@ _LOOKUP = "hdx-scraper-buildings"
 _UPDATED_BY_SCRIPT = "HDX Scraper: Buildings"
 
 
-def package(provider: str, iso3: str, output_dir: Path) -> None:
+def _package(provider: str, iso3: str, output_dir: Path) -> None:
     """Make a dataset."""
     with wheretostart_tempdir_batch(folder=_LOOKUP) as info:
         dataset = generate_dataset(provider, iso3, output_dir)
@@ -54,7 +55,7 @@ def package(provider: str, iso3: str, output_dir: Path) -> None:
             )
 
 
-def group_and_package(provider: str) -> None:
+def _group_and_package(provider: str) -> None:
     """Create resources for each country and then create a HDX dataset."""
     country_list = cwd / provider / "countries.csv"
     country_lookup = read_csv(country_list, usecols=["iso_3"]).drop_duplicates()
@@ -68,7 +69,7 @@ def group_and_package(provider: str) -> None:
             continue
         output_dir = data_dir / provider / "outputs" / iso3.lower()
         group(provider, iso3, output_dir)
-        package(provider, iso3, output_dir)
+        _package(provider, iso3, output_dir)
         rmtree(output_dir)
 
 
@@ -76,16 +77,18 @@ def main() -> None:
     """Generate datasets and create them in HDX."""
     logger.info("##### %s version %s ####", _LOOKUP, __version__)
     Configuration.read()
+    if RUN_GROUPING:
+        download_admin0(data_dir)
     if RUN_GOOGLE:
-        if not SKIP_DOWNLOAD:
+        if RUN_DOWNLOAD:
             google.main()
-        if not SKIP_GROUPING:
-            group_and_package(PROVIDER_GOOGLE)
+        if RUN_GROUPING:
+            _group_and_package(PROVIDER_GOOGLE)
     if RUN_MICROSOFT:
-        if not SKIP_DOWNLOAD:
+        if RUN_DOWNLOAD:
             microsoft.main()
-        if not SKIP_GROUPING:
-            group_and_package(PROVIDER_MICROSOFT)
+        if RUN_GROUPING:
+            _group_and_package(PROVIDER_MICROSOFT)
 
 
 if __name__ == "__main__":

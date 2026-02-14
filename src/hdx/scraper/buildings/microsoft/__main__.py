@@ -11,32 +11,41 @@ DATASET_LINKS = (
 )
 
 
-async def fetch_url(client: AsyncClient, url: str, semaphor: Semaphore) -> None:
+async def _fetch_url(client: AsyncClient, url: str, semaphor: Semaphore) -> None:
     """Download a large file from a URL in chunks using httpx."""
     async with semaphor:
         output_dir = data_dir / PROVIDER_MICROSOFT / "inputs"
-        file_name = url.split("/global-buildings.geojsonl/")[-1]
+        file_name = url.rsplit("/global-buildings.geojsonl/", maxsplit=1)[-1]
         output_path = output_dir / file_name.replace(".csv.gz", ".geojsonl")
         output_parquet = output_dir / file_name.replace(".csv.gz", ".parquet")
         await download_gz(client, url, output_path)
-        await vector_to_geoparquet(output_path, output_parquet)
+        for use_geo_types, subfolder in [
+            ("YES", "geoparquet-2.0"),
+            (None, "geoparquet-1.1"),
+            ("ONLY", "parquet"),
+        ]:
+            await vector_to_geoparquet(
+                output_path, output_parquet, use_parquet_geo_types=use_geo_types
+            )
+            await upload_to_s3(
+                PROVIDER_MICROSOFT, output_dir, output_parquet, subfolder
+            )
+            output_parquet.unlink()
         output_path.unlink()
-        await upload_to_s3(PROVIDER_MICROSOFT, output_dir, output_parquet)
-        output_parquet.unlink()
 
 
-async def download_files(urls: list[str]) -> None:
+async def _download_files(urls: list[str]) -> None:
     """Download files asynchronusly."""
     semaphore = Semaphore(CONCURRENCY_LIMIT)
     async with AsyncClient(timeout=TIMEOUT) as client, TaskGroup() as tg:
-        [tg.create_task(fetch_url(client, url, semaphore)) for url in urls]
+        [tg.create_task(_fetch_url(client, url, semaphore)) for url in urls]
 
 
 def main() -> None:
     """Read the master list of building footprint URLs and download them."""
     dataset_links = read_csv(DATASET_LINKS, usecols=["Url"])
     urls = dataset_links["Url"].to_list()
-    run(download_files(urls))
+    run(_download_files(urls))
 
 
 if __name__ == "__main__":

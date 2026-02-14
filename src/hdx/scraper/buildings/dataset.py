@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 @retry(stop=stop_after_attempt(ATTEMPT), wait=wait_fixed(WAIT))
-def add_resource(dataset: Dataset, resource_path: Path) -> None:
+def _add_resource(dataset: Dataset, resource_path: Path) -> None:
     """Add a resource to a dataset."""
     resource_data = {
         "name": resource_path.name,
@@ -48,5 +48,5 @@ def generate_dataset(provider: str, iso3: str, resources: Path) -> Dataset | Non
     for resource_path in sorted(resources.iterdir()):
         if resource_path.suffixes != [".gdb", ".zip"]:
             continue
-        add_resource(dataset, resource_path)
+        _add_resource(dataset, resource_path)
     return dataset

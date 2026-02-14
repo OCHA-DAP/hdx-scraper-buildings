@@ -18,3 +18,4 @@ wheels/
 
 # Directory where the scraper caches data
 saved_data/
+CLAUDE.md

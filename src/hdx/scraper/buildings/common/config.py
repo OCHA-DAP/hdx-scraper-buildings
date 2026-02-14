@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv(override=True)
 
 
-def is_bool_env(env: str) -> bool:
+def _is_bool_env(env: str) -> bool:
     """Check if env is a boolean."""
     return env.lower() in ("true", "yes", "on", "1")
 
@@ -15,16 +15,18 @@ def is_bool_env(env: str) -> bool:
 PROVIDER_GOOGLE = "google"
 PROVIDER_MICROSOFT = "microsoft"
 
-RUN_GOOGLE = is_bool_env(getenv("RUN_GOOGLE", "NO"))
-RUN_MICROSOFT = is_bool_env(getenv("RUN_MICROSOFT", "NO"))
-
-GLOBAL_ADM0 = "https://data.fieldmaps.io/adm0/osm/intl/adm0_polygons.parquet"
-GLOBAL_ADM1 = (
-    "https://data.fieldmaps.io/edge-matched/humanitarian/intl/adm1_polygons.parquet"
-)
+RUN_GOOGLE = _is_bool_env(getenv("RUN_GOOGLE", "NO"))
+RUN_MICROSOFT = _is_bool_env(getenv("RUN_MICROSOFT", "NO"))
 
 AWS_ENDPOINT_URL = "https://data.source.coop"
 AWS_ENDPOINT_S3 = "us-west-2.opendata.source.coop"
+
+ARCGIS_SERVER = getenv("ARCGIS_SERVER", "https://gis.unocha.org")
+ARCGIS_USERNAME = getenv("ARCGIS_USERNAME", "")
+ARCGIS_PASSWORD = getenv("ARCGIS_PASSWORD", "")
+ARCGIS_ADM0_URL = (
+    f"{ARCGIS_SERVER}/server/rest/services/Hosted/Global_AB_1M_fs_gray/FeatureServer/5"
+)
 
 ATTEMPT = 24  # for 1 day
 WAIT = 10  # 10 seconds
@@ -34,8 +36,8 @@ CONCURRENCY_LIMIT = int(getenv("CONCURRENCY_LIMIT", str(cpu_count())))
 
 HDX_MAX_SIZE = 1.5 * 1024 * 1024 * 1024  # 1.5 GB
 
-SKIP_DOWNLOAD = is_bool_env(getenv("SKIP_DOWNLOAD", "YES"))
-SKIP_GROUPING = is_bool_env(getenv("SKIP_GROUPING", "NO"))
+RUN_DOWNLOAD = _is_bool_env(getenv("RUN_DOWNLOAD", "NO"))
+RUN_GROUPING = _is_bool_env(getenv("RUN_GROUPING", "YES"))
 
 ISO_3_LEN = 3
 
@@ -49,3 +51,5 @@ iso3_exclude = [
 cwd = Path(__file__).parent
 data_dir = cwd / "../../../../../saved_data"
 data_dir.mkdir(exist_ok=True, parents=True)
+
+GLOBAL_ADM0 = data_dir / "bnda_cty.parquet"

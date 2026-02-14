@@ -33,14 +33,14 @@ uv build
 This scraper collects building footprint data from Google and Microsoft Open Buildings datasets and publishes them as HDX datasets.
 
 **Three-phase pipeline** (controlled by env vars):
-1. **Download** (`SKIP_DOWNLOAD=NO`): Fetch raw files (CSV.gz or GeoJSONL.gz) from provider URLs, convert to GeoParquet via GDAL, upload to S3-compatible storage (`source.coop`)
-2. **Group** (`SKIP_GROUPING=NO`): Pull parquet files from S3 by country bounding box using DuckDB spatial queries, convert to File Geodatabase (`.gdb.zip`) via GDAL
+1. **Download** (`RUN_DOWNLOAD=YES`): Fetch raw files (CSV.gz or GeoJSONL.gz) from provider URLs, convert to GeoParquet via GDAL, upload to S3-compatible storage (`source.coop`)
+2. **Group** (`RUN_GROUPING=YES`): Pull parquet files from S3 by country bounding box using DuckDB spatial queries, convert to File Geodatabase (`.gdb.zip`) via GDAL
 3. **Package**: Create/update HDX datasets with the zipped GDBs as resources
 
 **Key env vars** (`common/config.py`, loaded from `.env`):
 - `RUN_GOOGLE` / `RUN_MICROSOFT` — which providers to run (default: both off)
-- `SKIP_DOWNLOAD` — skip download phase (default: YES)
-- `SKIP_GROUPING` — skip grouping phase (default: NO)
+- `RUN_DOWNLOAD` — run download phase (default: NO)
+- `RUN_GROUPING` — run grouping phase (default: YES)
 - `ISO3_INCLUDE` / `ISO3_EXCLUDE` — comma-separated ISO3 codes to filter countries
 - `CONCURRENCY_LIMIT` — async download parallelism (default: cpu count)
 

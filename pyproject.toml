@@ -12,7 +12,7 @@ dependencies = [
     "hdx-python-api",
     "hdx-python-country",
     "hdx-python-utilities",
-    "httpx",
+    "httpx[http2]",
     "pandas",
     "pyarrow",
     "python-dotenv",
@@ -38,7 +38,18 @@ pythonpath = "src"
 exclude = ["_version.py"]
 fix = true
 lint.select = ["ALL"]
-lint.ignore = ["D100", "D104", "INP001", "S603", "S607", "S608", "TID252"]
+lint.ignore = [
+    "COM812",
+    "D100",
+    "D104",
+    "D203",
+    "D213",
+    "INP001",
+    "S603",
+    "S607",
+    "S608",
+    "TID252",
+]
 
 [tool.taskipy.tasks]
 # uv run task app

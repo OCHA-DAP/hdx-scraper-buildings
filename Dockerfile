@@ -9,7 +9,7 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 
 RUN --mount=type=bind,source=pyproject.toml,target=/srv/pyproject.toml \
     --mount=type=bind,source=uv.lock,target=/srv/uv.lock \
-    --mount=type=bind,source=src,target=/srv/sr,rw \
+    --mount=type=bind,source=src,target=/srv/src,rw \
     --mount=type=bind,source=.git,target=/srv/.git \
     apk add --no-cache \
     aws-cli \
