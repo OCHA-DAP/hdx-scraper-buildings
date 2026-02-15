@@ -18,19 +18,31 @@ async def _fetch_url(client: AsyncClient, url: str, semaphor: Semaphore) -> None
         file_name = url.rsplit("/global-buildings.geojsonl/", maxsplit=1)[-1]
         output_path = output_dir / file_name.replace(".csv.gz", ".geojsonl")
         output_parquet = output_dir / file_name.replace(".csv.gz", ".parquet")
+        sorted_parquet = output_dir / file_name.replace(".csv.gz", ".sorted.parquet")
         await download_gz(client, url, output_path)
+        # Convert from raw with SORT_BY_BBOX once; other variants reuse this sorted file
+        await vector_to_geoparquet(
+            output_path, sorted_parquet, use_parquet_geo_types="YES", sort_by_bbox=True
+        )
+        await upload_to_s3(
+            PROVIDER_MICROSOFT,
+            output_dir,
+            sorted_parquet,
+            "geoparquet-2.0",
+            s3_name=output_parquet.name,
+        )
         for use_geo_types, subfolder in [
-            ("YES", "geoparquet-2.0"),
             (None, "geoparquet-1.1"),
             ("ONLY", "parquet"),
         ]:
             await vector_to_geoparquet(
-                output_path, output_parquet, use_parquet_geo_types=use_geo_types
+                sorted_parquet, output_parquet, use_parquet_geo_types=use_geo_types
             )
             await upload_to_s3(
                 PROVIDER_MICROSOFT, output_dir, output_parquet, subfolder
             )
             output_parquet.unlink()
+        sorted_parquet.unlink()
         output_path.unlink()
 
 

@@ -4,7 +4,12 @@ from geopandas import read_file
 from httpx import AsyncClient
 
 from ..common.config import CONCURRENCY_LIMIT, PROVIDER_GOOGLE, TIMEOUT, data_dir
-from ..common.download import csv_to_geoparquet, download_gz, upload_to_s3
+from ..common.download import (
+    csv_to_geoparquet,
+    download_gz,
+    upload_to_s3,
+    vector_to_geoparquet,
+)
 
 DATASET_LINKS = "https://researchsites.withgoogle.com/tiles.geojson"
 CSV_COLUMNS = "area_in_meters,confidence"
@@ -17,20 +22,35 @@ async def _fetch_url(client: AsyncClient, url: str, semaphor: Semaphore) -> None
         file_name = url.rsplit("/", maxsplit=1)[-1]
         output_file = output_dir / file_name.replace(".csv.gz", ".csv")
         output_parquet = output_dir / file_name.replace(".csv.gz", ".parquet")
+        sorted_parquet = output_dir / file_name.replace(".csv.gz", ".sorted.parquet")
         await download_gz(client, url, output_file)
+        # Convert from raw with SORT_BY_BBOX once; other variants reuse this sorted file
+        await csv_to_geoparquet(
+            output_file,
+            sorted_parquet,
+            CSV_COLUMNS,
+            use_parquet_geo_types="YES",
+            sort_by_bbox=True,
+        )
+        await upload_to_s3(
+            PROVIDER_GOOGLE,
+            output_dir,
+            sorted_parquet,
+            "geoparquet-2.0",
+            s3_name=output_parquet.name,
+        )
         for use_geo_types, subfolder in [
-            ("YES", "geoparquet-2.0"),
             (None, "geoparquet-1.1"),
             ("ONLY", "parquet"),
         ]:
-            await csv_to_geoparquet(
-                output_file,
+            await vector_to_geoparquet(
+                sorted_parquet,
                 output_parquet,
-                CSV_COLUMNS,
                 use_parquet_geo_types=use_geo_types,
             )
             await upload_to_s3(PROVIDER_GOOGLE, output_dir, output_parquet, subfolder)
             output_parquet.unlink()
+        sorted_parquet.unlink()
         output_file.unlink()
 
 

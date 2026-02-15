@@ -27,7 +27,11 @@ async def download_gz(client: AsyncClient, url: str, output_path: Path) -> None:
 
 
 async def vector_to_geoparquet(
-    input_path: Path, output_path: Path, *, use_parquet_geo_types: str | None = "YES"
+    input_path: Path,
+    output_path: Path,
+    *,
+    use_parquet_geo_types: str | None = "YES",
+    sort_by_bbox: bool = False,
 ) -> None:
     """Download files from url to local directory."""
     output_path.parent.mkdir(exist_ok=True, parents=True)
@@ -42,6 +46,8 @@ async def vector_to_geoparquet(
     ]
     if use_parquet_geo_types:
         cmd.append(f"--lco=USE_PARQUET_GEO_TYPES={use_parquet_geo_types}")
+    if sort_by_bbox:
+        cmd.append("--lco=SORT_BY_BBOX=YES")
     process = await create_subprocess_shell(" ".join(cmd))
     returncode = await process.wait()
     if returncode != 0:
@@ -54,6 +60,7 @@ async def csv_to_geoparquet(
     columns: str,
     *,
     use_parquet_geo_types: str | None = "YES",
+    sort_by_bbox: bool = False,
 ) -> None:
     """Download files from url to local directory."""
     output_path.parent.mkdir(exist_ok=True, parents=True)
@@ -76,6 +83,8 @@ async def csv_to_geoparquet(
     ]
     if use_parquet_geo_types:
         cmd.append(f"--lco=USE_PARQUET_GEO_TYPES={use_parquet_geo_types}")
+    if sort_by_bbox:
+        cmd.append("--lco=SORT_BY_BBOX=YES")
     process = await create_subprocess_shell(" ".join(cmd))
     returncode = await process.wait()
     if returncode != 0:
@@ -84,10 +93,14 @@ async def csv_to_geoparquet(
 
 @retry(stop=stop_after_attempt(ATTEMPT), wait=wait_fixed(WAIT))
 async def upload_to_s3(
-    provider: str, output_dir: Path, output_path: Path, subfolder: str = ""
+    provider: str,
+    output_dir: Path,
+    output_path: Path,
+    subfolder: str = "",
+    s3_name: str | None = None,
 ) -> None:
     """Upload a file to S3 compatible storage."""
-    relative_path = output_path.relative_to(output_dir)
+    relative_path = s3_name or output_path.relative_to(output_dir)
     prefix = f"{subfolder}/" if subfolder else ""
     cmd = [
         *["aws", "s3", "cp"],
