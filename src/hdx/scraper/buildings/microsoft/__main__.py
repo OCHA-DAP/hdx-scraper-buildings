@@ -4,7 +4,12 @@ from httpx import AsyncClient
 from pandas import read_csv
 
 from ..common.config import CONCURRENCY_LIMIT, PROVIDER_MICROSOFT, TIMEOUT, data_dir
-from ..common.download import download_gz, upload_to_s3, vector_to_geoparquet
+from ..common.download import (
+    download_gz,
+    s3_file_exists,
+    upload_to_s3,
+    vector_to_geoparquet,
+)
 
 DATASET_LINKS = (
     "https://minedbuildings.z5.web.core.windows.net/global-buildings/dataset-links.csv"
@@ -18,6 +23,9 @@ async def _fetch_url(client: AsyncClient, url: str, semaphor: Semaphore) -> None
         file_name = url.rsplit("/global-buildings.geojsonl/", maxsplit=1)[-1]
         output_path = output_dir / file_name.replace(".csv.gz", ".geojsonl")
         output_parquet = output_dir / file_name.replace(".csv.gz", ".parquet")
+        s3_key = str(output_parquet.relative_to(output_dir))
+        if await s3_file_exists(PROVIDER_MICROSOFT, "parquet", s3_key):
+            return
         sorted_parquet = output_dir / file_name.replace(".csv.gz", ".sorted.parquet")
         await download_gz(client, url, output_path)
         # Convert from raw with SORT_BY_BBOX once; other variants reuse this sorted file
@@ -29,7 +37,7 @@ async def _fetch_url(client: AsyncClient, url: str, semaphor: Semaphore) -> None
             output_dir,
             sorted_parquet,
             "geoparquet-2.0",
-            s3_name=output_parquet.name,
+            s3_name=s3_key,
         )
         for use_geo_types, subfolder in [
             (None, "geoparquet-1.1"),

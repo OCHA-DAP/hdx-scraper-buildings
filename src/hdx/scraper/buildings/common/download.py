@@ -1,6 +1,7 @@
 import gzip
 import shutil
 from asyncio import create_subprocess_shell
+from asyncio.subprocess import PIPE
 from pathlib import Path
 
 from httpx import AsyncClient
@@ -89,6 +90,16 @@ async def csv_to_geoparquet(
     returncode = await process.wait()
     if returncode != 0:
         raise ValueError
+
+
+async def s3_file_exists(provider: str, subfolder: str, filename: str) -> bool:
+    """Check whether a file already exists in S3-compatible storage."""
+    prefix = f"{subfolder}/" if subfolder else ""
+    s3_path = f"s3://{AWS_ENDPOINT_S3}/hdx/{provider}-open-buildings/{prefix}{filename}"
+    cmd = ["aws", "s3", "ls", s3_path]
+    process = await create_subprocess_shell(" ".join(cmd), stdout=PIPE)
+    stdout, _ = await process.communicate()
+    return bool(stdout.strip())
 
 
 @retry(stop=stop_after_attempt(ATTEMPT), wait=wait_fixed(WAIT))

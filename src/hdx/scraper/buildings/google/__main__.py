@@ -7,6 +7,7 @@ from ..common.config import CONCURRENCY_LIMIT, PROVIDER_GOOGLE, TIMEOUT, data_di
 from ..common.download import (
     csv_to_geoparquet,
     download_gz,
+    s3_file_exists,
     upload_to_s3,
     vector_to_geoparquet,
 )
@@ -22,6 +23,8 @@ async def _fetch_url(client: AsyncClient, url: str, semaphor: Semaphore) -> None
         file_name = url.rsplit("/", maxsplit=1)[-1]
         output_file = output_dir / file_name.replace(".csv.gz", ".csv")
         output_parquet = output_dir / file_name.replace(".csv.gz", ".parquet")
+        if await s3_file_exists(PROVIDER_GOOGLE, "parquet", output_parquet.name):
+            return
         sorted_parquet = output_dir / file_name.replace(".csv.gz", ".sorted.parquet")
         await download_gz(client, url, output_file)
         # Convert from raw with SORT_BY_BBOX once; other variants reuse this sorted file
