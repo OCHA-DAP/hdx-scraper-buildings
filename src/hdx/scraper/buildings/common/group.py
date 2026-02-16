@@ -9,7 +9,7 @@ from .split import split_into_parts
 
 def group(provider: str, iso3: str, output_dir: Path) -> None:
     """Create a zipped File Geodatabase for a given country."""
-    input_path = f"s3://{AWS_ENDPOINT_S3}/hdx/{provider}-open-buildings/**/*.parquet"
+    input_path = f"s3://{AWS_ENDPOINT_S3}/hdx/{provider}-open-buildings/geoparquet-2.0/**/*_buildings.parquet"
     output_name = f"{iso3.lower()}_buildings"
     rmtree(output_dir, ignore_errors=True)
     output_dir.mkdir(exist_ok=True, parents=True)
