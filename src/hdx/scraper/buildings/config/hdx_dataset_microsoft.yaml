@@ -1,14 +1,15 @@
 license_id: hdx-odc-odbl
 methodology: Other
-methodology_other: "The building extraction is done in two stages:
-  1. Semantic Segmentation – Recognizing building pixels on an aerial image using deep neural networks (DNNs)
-  2. Polygonization – Converting building pixel detections into polygons
+methodology_other: "The building extraction is done in two stages:  \n  \n
+
+  1. Semantic Segmentation – Recognizing building pixels on an aerial image using deep neural networks (DNNs)  \n
+  2. Polygonization – Converting building pixel detections into polygons  \n  \n
 
   A neural network was trained to estimate height above ground using imagery paired with height measurements, then the average height was taken within a building polygon. Structures without height estimates are populated with a -1. Height estimates are in meters."
 caveats:
-  "- Vintage of extracted building footprints depends on the vintage of the underlying imagery. The underlying imagery is from Bing Maps including Maxar and Airbus between 2014 and 2024.
-  - Our metrics show that in the vast majority of cases the quality is at least as good as hand digitized buildings in OpenStreetMap. It is not perfect, particularly in dense urban areas but it provides good recall in rural areas.
-  - We excluded imagery from processing if tiles were dated before 2014 or there was a low-probability of detection. Detection probability is loosely defined here as proximity to roads and population centers. This filtering and tile exclusion results in squares of missing data.
+  "- Vintage of extracted building footprints depends on the vintage of the underlying imagery. The underlying imagery is from Bing Maps including Maxar and Airbus between 2014 and 2024.  \n
+  - Our metrics show that in the vast majority of cases the quality is at least as good as hand digitized buildings in OpenStreetMap. It is not perfect, particularly in dense urban areas but it provides good recall in rural areas.  \n
+  - We excluded imagery from processing if tiles were dated before 2014 or there was a low-probability of detection. Detection probability is loosely defined here as proximity to roads and population centers. This filtering and tile exclusion results in squares of missing data.  \n
   - Some files are very large but they are stored in line-delimited format so one could use parallel processing tools  (e.g., Spark, Dask) or create a memory efficient script to segment into smaller pieces. See scripts/read-large-files.py for a Python example."
 dataset_source: Bing Maps imagery between 2014 and 2024 including Maxar, Airbus, and IGN France imagery.
 package_creator: HDX Data Systems Team
@@ -17,4 +18,4 @@ private: False
 maintainer: maxmalynowsky
 owner_org: microsoft-ai4g-lab
 data_update_frequency: -2
-notes: "Bing Maps is releasing open building footprints around the world. We have detected 1.4B buildings from Bing Maps imagery between 2014 and 2024 including Maxar, Airbus, and IGN France imagery. The data is freely available for download and use under ODbL."
+notes: "Bing Maps releases open building footprints around the world. We have detected 1.4B buildings from Bing Maps imagery between 2014 and 2024 including Maxar, Airbus, and IGN France imagery. The data is freely available for download and use under ODbL."

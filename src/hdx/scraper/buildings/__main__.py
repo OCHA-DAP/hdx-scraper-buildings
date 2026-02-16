@@ -23,7 +23,7 @@ from .common.config import (
     iso3_include,
 )
 from .common.group import group
-from .dataset import generate_dataset
+from .dataset import generate_datasets
 from .google import __main__ as google
 from .microsoft import __main__ as microsoft
 
@@ -38,8 +38,7 @@ _UPDATED_BY_SCRIPT = "HDX Scraper: Buildings"
 def _package(provider: str, iso3: str, output_dir: Path) -> None:
     """Make a dataset."""
     with wheretostart_tempdir_batch(folder=_LOOKUP) as info:
-        dataset = generate_dataset(provider, iso3, output_dir)
-        if dataset:
+        for dataset in generate_datasets(provider, iso3, output_dir):
             dataset.update_from_yaml(
                 script_dir_plus_file(
                     str(cwd / f"config/hdx_dataset_{provider}.yaml"),
@@ -47,7 +46,7 @@ def _package(provider: str, iso3: str, output_dir: Path) -> None:
                 ),
             )
             dataset.create_in_hdx(
-                remove_additional_resources=True,
+                remove_additional_resources=False,
                 match_resource_order=False,
                 hxl_update=False,
                 updated_by_script=_UPDATED_BY_SCRIPT,
