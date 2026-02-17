@@ -14,7 +14,7 @@ caveats:
 dataset_source: Google Earth imagery
 package_creator: HDX Data Systems Team
 dataset_date: "[2023-05-30T00:00:00 TO 2023-05-30T23:59:59]"
-private: False
+private: True
 maintainer: maxmalynowsky
 owner_org: google-open-buildings
 data_update_frequency: -2
@@ -23,7 +23,7 @@ notes:
 
   For each building in this dataset we include the polygon describing its footprint on the ground, a confidence score indicating how sure we are that this is a building, and a Plus Code corresponding to the center of the building. There is no information about the type of building, its street address, or any details other than its geometry.  \n  \n
 
-  Building footprints are useful for a range of important applications: from population estimation, urban planning and humanitarian response to environmental and climate science. The project is based in Ghana, with an initial focus on the continent of Africa and new updates on South Asia, South-East Asia, Latin America and the Caribbean.  \n  \n
+  The HDX team curates the datasets on the [Google Open Buildings (by HDX)](https://data.humdata.org/organization/google-open-buildings) page. The HDX team uses international boundaries from the UN Geospatial Hub.  \n  \n
 
   Inference was carried out during May 2023.  \n  \n
 

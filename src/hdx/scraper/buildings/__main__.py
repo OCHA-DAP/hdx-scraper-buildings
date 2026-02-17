@@ -35,10 +35,14 @@ _LOOKUP = "hdx-scraper-buildings"
 _UPDATED_BY_SCRIPT = "HDX Scraper: Buildings"
 
 
-def _package(provider: str, iso3: str, output_dir: Path) -> None:
+def _package(
+    provider: str, iso3: str, output_dir: Path, *, metadata_only: bool = False
+) -> None:
     """Make a dataset."""
     with wheretostart_tempdir_batch(folder=_LOOKUP) as info:
-        for dataset in generate_datasets(provider, iso3, output_dir):
+        for dataset in generate_datasets(
+            provider, iso3, output_dir, metadata_only=metadata_only
+        ):
             dataset.update_from_yaml(
                 script_dir_plus_file(
                     str(cwd / f"config/hdx_dataset_{provider}.yaml"),
@@ -54,7 +58,7 @@ def _package(provider: str, iso3: str, output_dir: Path) -> None:
             )
 
 
-def _group_and_package(provider: str) -> None:
+def _group_and_package(provider: str, *, metadata_only: bool = False) -> None:
     """Create resources for each country and then create a HDX dataset."""
     country_list = cwd / provider / "countries.csv"
     country_lookup = read_csv(country_list, usecols=["iso_3"]).drop_duplicates()
@@ -67,27 +71,29 @@ def _group_and_package(provider: str) -> None:
         if len(iso3_exclude) and iso3 in iso3_exclude:
             continue
         output_dir = data_dir / provider / "outputs" / iso3.lower()
-        group(provider, iso3, output_dir)
-        _package(provider, iso3, output_dir)
-        rmtree(output_dir)
+        if not metadata_only:
+            group(provider, iso3, output_dir)
+        _package(provider, iso3, output_dir, metadata_only=metadata_only)
+        if output_dir.exists():
+            rmtree(output_dir)
 
 
-def main() -> None:
+def main(metadata_only: bool = False) -> None:  # noqa: FBT001, FBT002
     """Generate datasets and create them in HDX."""
     logger.info("##### %s version %s ####", _LOOKUP, __version__)
     Configuration.read()
-    if RUN_GROUPING:
+    if RUN_GROUPING and not metadata_only:
         download_admin0(data_dir)
     if RUN_GOOGLE:
         if RUN_DOWNLOAD:
             google.main()
         if RUN_GROUPING:
-            _group_and_package(PROVIDER_GOOGLE)
+            _group_and_package(PROVIDER_GOOGLE, metadata_only=metadata_only)
     if RUN_MICROSOFT:
         if RUN_DOWNLOAD:
             microsoft.main()
         if RUN_GROUPING:
-            _group_and_package(PROVIDER_MICROSOFT)
+            _group_and_package(PROVIDER_MICROSOFT, metadata_only=metadata_only)
 
 
 if __name__ == "__main__":
