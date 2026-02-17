@@ -99,6 +99,7 @@ def main(metadata_only: bool = False) -> None:  # noqa: FBT001, FBT002
 if __name__ == "__main__":
     facade(
         main,
+        hdx_site="prod",
         user_agent_config_yaml=str(Path("~").expanduser() / ".useragents.yaml"),
         user_agent_lookup=_LOOKUP,
     )

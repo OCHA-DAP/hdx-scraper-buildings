@@ -1,6 +1,6 @@
 license_id: hdx-odc-odbl
 methodology: Other
-methodology_other: A deep learning model was trained to determine the footprints of buildings from high resolution satellite imagery. Our accompanying technical report describes the methodology used to generate the first version of the dataset. We however made further improvements for the subsequent versions, v2 and v3.
+methodology_other: A deep learning model was trained to determine the footprints of buildings from high resolution satellite imagery. An accompanying [technical report](https://arxiv.org/abs/2107.12283) describes the methodology used to generate the first version of the dataset. Further improvements were made for the subsequent versions, v2 and v3.
 caveats:
   "Despite having a diverse set of training data, some scenarios are challenging for the building detection pipeline, including:  \n  \n
 
@@ -19,12 +19,10 @@ maintainer: maxmalynowsky
 owner_org: google-open-buildings
 data_update_frequency: -2
 notes:
-  "This large-scale open dataset consists of outlines of buildings derived from high-resolution 50 cm satellite imagery. It contains 1.8B building detections in Africa, Latin America, Caribbean, South Asia and Southeast Asia. The inference spanned an area of 58M km².  \n  \n
+  "This large-scale open dataset consists of outlines of buildings derived from high-resolution 50 cm satellite imagery. It contains 1.8B building detections in Africa, Latin America, Caribbean, South Asia and Southeast Asia. The inference spanned an area of 58M km² and was carried out during May 2023.  \n  \n
 
-  For each building in this dataset we include the polygon describing its footprint on the ground, a confidence score indicating how sure we are that this is a building, and a Plus Code corresponding to the center of the building. There is no information about the type of building, its street address, or any details other than its geometry.  \n  \n
+  Each building in this dataset includes a polygon describing its footprint size on the ground and a confidence score indicating how sure this is a building. There is no information about the type of building, its street address, or any details other than its geometry.  \n  \n
 
-  The HDX team curates the datasets on the [Google Open Buildings (by HDX)](https://data.humdata.org/organization/google-open-buildings) page. The HDX team uses international boundaries from the UN Geospatial Hub.  \n  \n
+  The HDX team curates these datasets at [Google Open Buildings (by HDX)](https://data.humdata.org/organization/google-open-buildings) using international boundaries from the UN Geospatial Hub.  \n  \n
 
-  Inference was carried out during May 2023.  \n  \n
-
-  For more details see the official website of the [Open Buildings dataset](https://sites.research.google/gr/open-buildings/)."
+  For more details, see the official website of the [Open Buildings dataset](https://sites.research.google/gr/open-buildings/)."
