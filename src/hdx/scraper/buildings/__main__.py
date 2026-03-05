@@ -52,7 +52,6 @@ def _package(
             dataset.create_in_hdx(
                 remove_additional_resources=False,
                 match_resource_order=False,
-                hxl_update=False,
                 updated_by_script=_UPDATED_BY_SCRIPT,
                 batch=info["batch"],
             )

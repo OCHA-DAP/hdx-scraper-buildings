@@ -49,7 +49,6 @@ def configuration(config_dir: Path) -> Configuration:
             {"name": tag}
             # Change tags below to match those needed in tests
             for tag in (
-                "hxl",
                 "humanitarian needs overview - hno",
                 "people in need - pin",
             )
